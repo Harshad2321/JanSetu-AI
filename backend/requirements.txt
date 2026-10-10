@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+langgraph
+langchain-groq
+langchain-core
+sqlmodel
+pytest
+python-dotenv
