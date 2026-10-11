@@ -8,3 +8,4 @@ langchain-core
 sqlmodel
 pytest
 python-dotenv
+pillow
