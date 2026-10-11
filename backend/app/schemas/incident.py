@@ -44,8 +44,11 @@ class OperationalStatus(str, Enum):
     PLANNING = "PLANNING"
     VALIDATING = "VALIDATING"
     SIMULATING = "SIMULATING"
+    VERIFYING_CLOSURE = "VERIFYING_CLOSURE"
     RECOVERING = "RECOVERING"
     ESCALATED = "ESCALATED"
+    SIMULATED_RESOLVED = "SIMULATED_RESOLVED"
+    CLOSURE_BLOCKED = "CLOSURE_BLOCKED"
     RESOLVED = "RESOLVED"
     DUPLICATE = "DUPLICATE"
 
@@ -322,6 +325,10 @@ class PhotoEvidenceAnalysis(BaseModel):
     quality_explanation: Optional[str] = Field(
         default=None,
         description="Reasoning for low quality, blur, or inconclusive assessment"
+    )
+    provenance: str = Field(
+        default="UNVERIFIED",
+        description="Verification provenance: GROQ_VISION, DETERMINISTIC_FALLBACK, SEEDED_SIMULATION, INTAKE_SANITIZED_PRELIMINARY, NOT_PROVIDED"
     )
     authenticity_disclaimer: str = Field(
         default=(
@@ -633,11 +640,26 @@ class SharedWorkflowCaseState(BaseModel):
         """
         Enforce core domain constraints:
         1. A photo being MATCHED does NOT mean the complaint is RESOLVED.
-        2. A photo being NOT_PROVIDED or MISMATCH must never cause silent dropping or deletion.
+        2. A photograph cannot independently close an incident.
+        3. A complaint without verified closure evidence cannot become RESOLVED or SIMULATED_RESOLVED.
+        4. A photo being NOT_PROVIDED or MISMATCH must never cause silent dropping or deletion.
         """
-        # If photo is MATCHED, operational status must not jump to RESOLVED without passing planning/simulation
-        if self.evidence_status == EvidenceOutcome.MATCHED and self.operational_status == OperationalStatus.RESOLVED:
-            # Operational resolution requires closure evidence or completed plan
-            if not self.closure_evidence and not self.current_plan:
-                raise ValueError("Incident cannot be marked RESOLVED solely because photograph is MATCHED.")
+        # Rule 1: A resolution status requires verified closure evidence with is_ready_for_closure=True
+        if self.operational_status in (OperationalStatus.RESOLVED, OperationalStatus.SIMULATED_RESOLVED):
+            if not self.closure_evidence or not self.closure_evidence.is_ready_for_closure:
+                raise ValueError(
+                    f"Incident cannot reach status '{self.operational_status}' without verified closure evidence. "
+                    "Incident cannot be marked RESOLVED solely because photograph is MATCHED."
+                )
+
+        # Rule 2: A matched photograph alone cannot resolve an incident
+        if self.evidence_status == EvidenceOutcome.MATCHED and self.operational_status in (OperationalStatus.RESOLVED, OperationalStatus.SIMULATED_RESOLVED):
+            if not self.closure_evidence or not self.closure_evidence.is_ready_for_closure:
+                raise ValueError("A matched photograph cannot independently resolve an incident without verified closure evidence.")
+
+        # Rule 3: Missing photograph can never jump to resolved status
+        if self.evidence_status == EvidenceOutcome.NOT_PROVIDED and self.operational_status in (OperationalStatus.RESOLVED, OperationalStatus.SIMULATED_RESOLVED):
+            if not self.closure_evidence or not self.closure_evidence.is_ready_for_closure:
+                raise ValueError("A complaint without a photograph cannot reach a resolved status without verified closure evidence.")
+
         return self

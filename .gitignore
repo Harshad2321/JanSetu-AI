@@ -3,6 +3,13 @@
 *.env
 .env.*
 !.env.example
+!.env.production.example
+secrets.toml
+*/secrets.toml
+.streamlit/secrets.toml
+streamlit_app/.streamlit/secrets.toml
+*.pem
+*.key
 
 # Python
 __pycache__/
@@ -27,3 +34,13 @@ Thumbs.db
 *.temp
 scratch/
 tmp/
+
+# Data and SQLite
+*.db
+*.sqlite
+*.sqlite3
+data/
+uploads/
+backend/data/
+backend/uploads/
+

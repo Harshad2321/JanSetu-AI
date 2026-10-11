@@ -1,40 +1,82 @@
-from app.schemas.incident import GeoAnalysis
-from app.graph.state import IncidentState
-import random
+"""
+JanSetu AI — GeoCivic Agent.
 
-def geocivic_node(state: IncidentState) -> dict:
+Responsible for:
+- Reading confirmed coordinates, accuracy metadata, and description clues
+- Computing exact Haversine distances against the synthetic civic registry
+- Identifying spatial clusters, nearby active incidents, and duplicate candidates
+- Preserving duplicate reports transparently without silent deletion
+"""
+
+from __future__ import annotations
+
+import logging
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
+from app.core.geo_utils import find_nearby_and_duplicates
+from app.graph.state import IncidentState
+from app.schemas.incident import (
+    AuditEvent,
+    GeoAnalysis,
+    IncidentLocation,
+)
+
+logger = logging.getLogger("jansetu.geocivic")
+
+
+def geocivic_node(state: IncidentState) -> Dict[str, Any]:
+    """
+    GeoCivic Agent node. Runs concurrently with Priority Intelligence Agent.
+    
+    Returns:
+    - geo_context: GeoAnalysis
+    - audit_timeline: list of AuditEvent
+    
+    Does NOT update the 'status' key to prevent state merge collisions with parallel branches.
+    """
     facts = state.get("extracted_facts")
-    
-    # Mocking geospatial lookup based on the extracted text
-    # In a real app this would query PostGIS or similar
-    
-    is_duplicate = False
-    duplicate_of_id = None
-    nearby = []
-    
-    # Deterministic mock rule for demonstration
-    if facts and "Main St" in state.get("raw_input", ""):
-        is_duplicate = True
-        duplicate_of_id = "INC-1002"
-        nearby = ["INC-1002", "INC-0998"]
-    else:
-        # Just return some random nearby stuff
-        nearby = [f"INC-{random.randint(1000, 9999)}" for _ in range(2)]
-        
-    analysis = GeoAnalysis(
-        nearby_incident_ids=nearby,
-        is_duplicate=is_duplicate,
-        duplicate_of_id=duplicate_of_id
+    raw_input = state.get("raw_input", "")
+    location_data = state.get("location_data")
+
+    # Extract coordinates safely
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+
+    if isinstance(location_data, IncidentLocation):
+        lat = location_data.latitude
+        lon = location_data.longitude
+    elif isinstance(location_data, dict):
+        lat = location_data.get("latitude")
+        lon = location_data.get("longitude")
+
+    category = facts.category if facts else state.get("selected_category", "uncertain_other")
+
+    # Perform geospatial duplicate and proximity lookup
+    analysis = find_nearby_and_duplicates(
+        category=category,
+        latitude=lat,
+        longitude=lon,
+        description_text=raw_input,
     )
-    
-    audit_event = {
-        "timestamp": "now",
-        "agent": "GeoCivic Agent",
-        "action": "Geospatial duplicate check",
-        "result": f"Duplicate: {is_duplicate}" + (f" of {duplicate_of_id}" if is_duplicate else "")
-    }
-    
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    result_summary = (
+        f"Nearby: {len(analysis.nearby_incident_ids)} | "
+        f"Duplicate: {analysis.is_duplicate}"
+        + (f" of {analysis.duplicate_of_id} (Dist: {analysis.distance_to_nearest_meters}m)" if analysis.is_duplicate else "")
+    )
+
+    audit_event = AuditEvent(
+        timestamp=now_iso,
+        agent="GeoCivic Agent",
+        action="Geospatial Proximity & Duplicate Check",
+        result=result_summary,
+    )
+
+    logger.info("GeoCivic complete: %s", result_summary)
+
     return {
         "geo_context": analysis,
-        "audit_timeline": [audit_event]
+        "audit_timeline": [audit_event.model_dump()],
     }

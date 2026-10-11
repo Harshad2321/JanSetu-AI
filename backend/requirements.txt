@@ -6,6 +6,11 @@ langgraph
 langchain-groq
 langchain-core
 sqlmodel
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.9
+alembic>=1.13.0
 pytest
 python-dotenv
 pillow
+python-multipart
+httpx
