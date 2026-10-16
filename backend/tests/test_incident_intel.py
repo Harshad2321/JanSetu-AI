@@ -541,6 +541,10 @@ def test_live_groq_vision_invocation_optional(valid_jpeg_bytes):
         simulation_mode=False,
     )
 
+    # If live Groq rate limit is encountered on free-tier, skip test gracefully
+    if result.error_type == "RATE_LIMIT":
+        pytest.skip(f"Live Groq API rate limit reached: {result.error_message}")
+
     # Verify structured outcome
     assert result.success is True
     assert result.is_fallback is False

@@ -2,25 +2,29 @@ import React, { useState } from 'react';
 import {
   Activity,
   AlertTriangle,
+  Code2,
+  Cpu,
   Database,
   Layers,
   MapPin,
   Menu,
   PlayCircle,
-  RefreshCw,
+  Search,
   Sliders,
   X,
 } from 'lucide-react';
 import type { HealthResponse } from '../../types/api';
-import { api } from '../../services/api';
 
 export type ActiveTab =
   | 'operations'
+  | 'explorer'
   | 'submit'
   | 'workspace'
   | 'command-center'
   | 'simulation-lab'
+  | 'ml-lab'
   | 'audit'
+  | 'architecture'
   | 'health';
 
 interface NavbarProps {
@@ -28,7 +32,6 @@ interface NavbarProps {
   onTabChange: (tab: ActiveTab) => void;
   health: HealthResponse | null;
   onRefreshHealth: () => void;
-  onSeeded?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -36,37 +39,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   onTabChange,
   health,
   onRefreshHealth,
-  onSeeded,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [seeding, setSeeding] = useState(false);
-  const [seedNotice, setSeedNotice] = useState<string | null>(null);
 
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'operations', label: 'Operations Overview', icon: <Layers className="w-4 h-4" /> },
-    { id: 'submit', label: 'Citizen Intake', icon: <MapPin className="w-4 h-4" /> },
-    { id: 'workspace', label: 'Incident Workspace', icon: <AlertTriangle className="w-4 h-4" /> },
-    { id: 'command-center', label: 'Agent Command Center', icon: <Activity className="w-4 h-4" /> },
-    { id: 'simulation-lab', label: 'Simulation Lab', icon: <PlayCircle className="w-4 h-4" /> },
-    { id: 'audit', label: 'Audit Timeline', icon: <Database className="w-4 h-4" /> },
-    { id: 'health', label: 'System Health', icon: <Sliders className="w-4 h-4" /> },
+    { id: 'operations', label: 'Operations', icon: <Layers className="w-3.5 h-3.5" /> },
+    { id: 'explorer', label: 'Incident Explorer', icon: <Search className="w-3.5 h-3.5" /> },
+    { id: 'submit', label: 'Report Incident', icon: <MapPin className="w-3.5 h-3.5" /> },
+    { id: 'workspace', label: 'Civic Twin', icon: <AlertTriangle className="w-3.5 h-3.5" /> },
+    { id: 'command-center', label: 'Agent Operations', icon: <Activity className="w-3.5 h-3.5" /> },
+    { id: 'simulation-lab', label: 'Simulation Lab', icon: <PlayCircle className="w-3.5 h-3.5" /> },
+    { id: 'ml-lab', label: 'ML Model Lab', icon: <Cpu className="w-3.5 h-3.5" /> },
+    { id: 'audit', label: 'Learning & Audit', icon: <Database className="w-3.5 h-3.5" /> },
+    { id: 'architecture', label: 'Architecture', icon: <Code2 className="w-3.5 h-3.5" /> },
+    { id: 'health', label: 'Diagnostics', icon: <Sliders className="w-3.5 h-3.5" /> },
   ];
-
-  const handleSeed = async () => {
-    setSeeding(true);
-    setSeedNotice(null);
-    try {
-      const res = await api.seedDemonstrationData();
-      setSeedNotice(res.message);
-      if (onSeeded) onSeeded();
-      setTimeout(() => setSeedNotice(null), 4000);
-    } catch (err: any) {
-      setSeedNotice(`Seed failed: ${err.message}`);
-      setTimeout(() => setSeedNotice(null), 4000);
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   const isHealthy = health?.status === 'healthy';
 
@@ -75,62 +62,53 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Product Title */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-teal-600 to-emerald-500 p-0.5 shadow-md shadow-teal-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center">
-                <span className="font-extrabold text-sm tracking-wider text-teal-400">JS</span>
+          <div
+            onClick={() => onTabChange('operations')}
+            className="flex items-center gap-3 cursor-pointer shrink-0"
+          >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-teal-600 to-emerald-500 p-0.5 shadow-md shadow-teal-500/20">
+              <div className="w-full h-full bg-slate-950 rounded-[6px] flex items-center justify-center">
+                <span className="font-extrabold text-xs tracking-wider text-teal-400">JS</span>
               </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-black tracking-tight text-lg text-slate-100">JANSETU AI</span>
-                <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/30">
+                <span className="font-black tracking-tight text-base text-slate-100">JANSETU AI</span>
+                <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/30">
                   Command Center
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium tracking-tight">Adaptive Civic Incident Resolution</p>
+              <p className="text-[10px] text-slate-400 font-medium tracking-tight">Adaptive Civic Incident Resolution</p>
             </div>
           </div>
 
           {/* Desktop Navigation Tabs */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          <nav className="hidden xl:flex items-center space-x-1">
             {navItems.map((item) => {
               const active = activeTab === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     active
-                      ? 'bg-teal-500/15 text-teal-300 border border-teal-500/40 shadow-sm shadow-teal-500/10'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+                      ? 'bg-teal-500/15 text-teal-300 border border-teal-500/40 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900'
                   }`}
                 >
                   {item.icon}
-                  {item.label}
+                  <span>{item.label}</span>
                 </button>
               );
             })}
           </nav>
 
-          {/* Right Action Bar */}
-          <div className="hidden sm:flex items-center gap-3">
-            {/* Seed Demo Button */}
-            <button
-              onClick={handleSeed}
-              disabled={seeding}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors disabled:opacity-50"
-              title="Seed representative civic cases for demonstration"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 text-teal-400 ${seeding ? 'animate-spin' : ''}`} />
-              {seeding ? 'Seeding...' : 'Seed Demo Data'}
-            </button>
-
-            {/* Health Indicator */}
+          {/* System Health Status Indicator */}
+          <div className="hidden sm:flex items-center gap-2">
             <div
               onClick={onRefreshHealth}
-              className="cursor-pointer flex items-center gap-2 px-2.5 py-1 rounded-md text-xs border border-slate-800 bg-slate-900/60 hover:bg-slate-900"
-              title="Click to re-check API health"
+              className="cursor-pointer flex items-center gap-2 px-2.5 py-1 rounded-md text-xs border border-slate-800 bg-slate-900/60 hover:bg-slate-900 transition-colors"
+              title="Click to check API health"
             >
               <span
                 className={`w-2 h-2 rounded-full ${
@@ -144,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Mobile Hamburger Button */}
-          <div className="flex lg:hidden items-center gap-2">
+          <div className="flex xl:hidden items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-900"
@@ -155,16 +133,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Seed Notice Toast */}
-      {seedNotice && (
-        <div className="bg-teal-950/90 border-t border-b border-teal-500/40 px-4 py-2 text-center text-xs text-teal-200 animate-in fade-in">
-          {seedNotice}
-        </div>
-      )}
-
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-1">
+        <div className="xl:hidden border-t border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-1">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -172,9 +143,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onTabChange(item.id);
                 setMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-left ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium text-left ${
                 activeTab === item.id
-                  ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30'
+                  ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 font-bold'
                   : 'text-slate-400 hover:text-white hover:bg-slate-900'
               }`}
             >
@@ -182,17 +153,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               {item.label}
             </button>
           ))}
-          <div className="pt-2 border-t border-slate-800 flex justify-between items-center">
-            <button
-              onClick={handleSeed}
-              disabled={seeding}
-              className="px-3 py-1.5 text-xs font-medium rounded border border-slate-700 bg-slate-900 text-slate-300"
-            >
-              {seeding ? 'Seeding...' : 'Seed Demo Data'}
+          <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono">
+            <span>Status: {isHealthy ? '● Backend Live' : '○ Offline'}</span>
+            <button onClick={onRefreshHealth} className="text-teal-400 hover:underline">
+              Refresh Health
             </button>
-            <span className="text-xs text-slate-400 font-mono">
-              {isHealthy ? '● API Connected' : '○ API Offline'}
-            </span>
           </div>
         </div>
       )}

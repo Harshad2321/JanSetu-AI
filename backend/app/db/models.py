@@ -13,7 +13,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-from sqlalchemy import Boolean, Column, DateTime, Integer, JSON, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy.orm import relationship
 
 from app.db.session import Base
 from app.schemas.api import IncidentResponse
@@ -90,6 +91,7 @@ class IncidentModel(Base):
     current_plan = Column(JSON, nullable=True)
     validation = Column(JSON, nullable=True)
     closure_evidence = Column(JSON, nullable=True)
+    verification_result = Column(JSON, nullable=True)
 
     # Simulation and recovery telemetry
     simulation_result = Column(String(64), nullable=True)
@@ -200,6 +202,9 @@ class IncidentModel(Base):
         if "closure_evidence" in state and state["closure_evidence"]:
             self.closure_evidence = to_jsonable(state["closure_evidence"])
 
+        if "verification_result" in state and state["verification_result"]:
+            self.verification_result = to_jsonable(state["verification_result"])
+
         if "simulation_result" in state:
             self.simulation_result = state.get("simulation_result")
 
@@ -226,3 +231,137 @@ class IncidentModel(Base):
             self.audit_timeline = combined
 
         self.updated_at = utc_now()
+
+
+class ModelPredictionModel(Base):
+    """Persisted model predictions from NLP, vision, and fusion stages."""
+    __tablename__ = "model_predictions"
+
+    prediction_id = Column(String(128), primary_key=True, index=True)
+    incident_id = Column(String(64), ForeignKey("incidents.incident_id"), nullable=False, index=True)
+    task_type = Column(String(64), nullable=False)
+    predicted_label = Column(String(128), nullable=False)
+    scores = Column(JSON, default=dict, nullable=False)
+    model_version = Column(String(128), nullable=True)
+    available = Column(Boolean, default=True, nullable=False)
+    fallback_provenance = Column(String(64), default="direct", nullable=False)
+    is_synthetic = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    incident = relationship("IncidentModel", back_populates="predictions")
+
+
+class PlanModel(Base):
+    """Persisted plan versions, including temporary relief and permanent repair variants."""
+    __tablename__ = "response_plans"
+
+    plan_id = Column(String(128), primary_key=True, index=True)
+    incident_id = Column(String(64), ForeignKey("incidents.incident_id"), nullable=False, index=True)
+    plan_type = Column(String(64), nullable=False)
+    version = Column(Integer, nullable=False, default=1)
+    status = Column(String(64), nullable=False, default="DRAFT")
+    actions = Column(JSON, default=list, nullable=False)
+    dependencies = Column(JSON, default=list, nullable=False)
+    resource_requirements = Column(JSON, default=list, nullable=False)
+    approval_requirements = Column(JSON, default=list, nullable=False)
+    estimated_cost = Column(Float, nullable=True)
+    estimated_duration_hours = Column(Float, nullable=True)
+    is_synthetic = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    incident = relationship("IncidentModel", back_populates="plans")
+
+
+class ExecutionAttemptModel(Base):
+    """Persisted execution-record history for simulated intervention attempts."""
+    __tablename__ = "execution_attempts"
+
+    attempt_id = Column(String(128), primary_key=True, index=True)
+    incident_id = Column(String(64), ForeignKey("incidents.incident_id"), nullable=False, index=True)
+    plan_id = Column(String(128), nullable=True)
+    resource = Column(String(128), default="simulated_runtime", nullable=False)
+    outcome = Column(String(64), nullable=False)
+    failure_reason = Column(Text, nullable=True)
+    evidence_reference = Column(String(512), nullable=True)
+    simulated = Column(Boolean, default=True, nullable=False)
+    attempted_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    incident = relationship("IncidentModel", back_populates="execution_attempts")
+
+
+class VerificationResultModel(Base):
+    """Persisted independent verification result tied to the incident being closed."""
+    __tablename__ = "verification_results"
+
+    verification_id = Column(String(128), primary_key=True, index=True)
+    incident_id = Column(String(64), ForeignKey("incidents.incident_id"), nullable=False, index=True)
+    criteria = Column(JSON, default=list, nullable=False)
+    evidence_reviewed = Column(JSON, default=list, nullable=False)
+    result = Column(String(64), nullable=False)
+    passed = Column(Boolean, default=False, nullable=False)
+    rejection_reasons = Column(JSON, default=list, nullable=False)
+    reviewer = Column(String(128), default="independent_verification_agent", nullable=False)
+    reviewed_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    correlation_id = Column(String(128), nullable=True)
+
+    incident = relationship("IncidentModel", back_populates="verification_results")
+
+
+class AuditEventModel(Base):
+    """Persistent chronological audit timeline for each incident."""
+    __tablename__ = "audit_events"
+
+    event_id = Column(String(128), primary_key=True, index=True)
+    incident_id = Column(String(64), ForeignKey("incidents.incident_id"), nullable=False, index=True)
+    timestamp = Column(String(64), nullable=False)
+    agent = Column(String(128), nullable=False)
+    action = Column(String(256), nullable=False)
+    result = Column(Text, nullable=False)
+    outcome = Column(String(64), nullable=True)
+    event_type = Column(String(64), nullable=True)
+    correlation_id = Column(String(128), nullable=True)
+
+    incident = relationship("IncidentModel", back_populates="audit_events")
+
+
+class HumanCorrectionModel(Base):
+    """Persistent human corrections and review decisions for normalized fields."""
+    __tablename__ = "human_corrections"
+
+    correction_id = Column(String(128), primary_key=True, index=True)
+    incident_id = Column(String(64), ForeignKey("incidents.incident_id"), nullable=False, index=True)
+    source_record = Column(String(128), nullable=False)
+    corrected_field = Column(String(128), nullable=False)
+    original_value = Column(Text, nullable=True)
+    corrected_value = Column(Text, nullable=True)
+    reviewer = Column(String(128), default="human_operator", nullable=False)
+    review_status = Column(String(32), default="PENDING", nullable=False)
+    corrected_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    incident = relationship("IncidentModel", back_populates="human_corrections")
+
+
+class DuplicateCandidateModel(Base):
+    """Candidate duplicate records remain unconfirmed until human review."""
+    __tablename__ = "duplicate_candidates"
+
+    candidate_id = Column(String(128), primary_key=True, index=True)
+    incident_id = Column(String(64), ForeignKey("incidents.incident_id"), nullable=False, index=True)
+    other_incident_id = Column(String(64), nullable=False)
+    distance_meters = Column(Float, nullable=True)
+    similarity_score = Column(Float, nullable=True)
+    rationale = Column(Text, nullable=True)
+    review_status = Column(String(32), default="UNCONFIRMED", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    incident = relationship("IncidentModel", back_populates="duplicate_candidates")
+
+
+# Back-population wiring for IncidentModel relationships.
+IncidentModel.predictions = relationship("ModelPredictionModel", back_populates="incident", cascade="all, delete-orphan")
+IncidentModel.plans = relationship("PlanModel", back_populates="incident", cascade="all, delete-orphan")
+IncidentModel.execution_attempts = relationship("ExecutionAttemptModel", back_populates="incident", cascade="all, delete-orphan")
+IncidentModel.verification_results = relationship("VerificationResultModel", back_populates="incident", cascade="all, delete-orphan")
+IncidentModel.audit_events = relationship("AuditEventModel", back_populates="incident", cascade="all, delete-orphan")
+IncidentModel.human_corrections = relationship("HumanCorrectionModel", back_populates="incident", cascade="all, delete-orphan")
+IncidentModel.duplicate_candidates = relationship("DuplicateCandidateModel", back_populates="incident", cascade="all, delete-orphan")

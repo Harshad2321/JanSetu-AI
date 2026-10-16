@@ -9,4 +9,22 @@ export default defineConfig({
       "@": fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('node_modules/@xyflow')) {
+            return 'vendor-xyflow';
+          }
+          if (id.includes('node_modules/recharts')) {
+            return 'vendor-charts';
+          }
+          if (id.includes('node_modules/lucide-react')) {
+            return 'vendor-icons';
+          }
+        },
+      },
+    },
+  },
 })
+

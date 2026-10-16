@@ -3,11 +3,8 @@
 *.env
 .env.*
 !.env.example
-!.env.production.example
 secrets.toml
 */secrets.toml
-.streamlit/secrets.toml
-streamlit_app/.streamlit/secrets.toml
 *.pem
 *.key
 
@@ -39,8 +36,14 @@ tmp/
 *.db
 *.sqlite
 *.sqlite3
-data/
+data/*.db
+data/uploads/
 uploads/
 backend/data/
 backend/uploads/
+!data/nlp_model.joblib
+!data/synthetic_complaints_*.json
 
+# Local agent customizations
+.agents/
+skills-lock.json

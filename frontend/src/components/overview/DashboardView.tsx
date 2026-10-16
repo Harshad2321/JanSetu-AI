@@ -39,7 +39,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [seeding, setSeeding] = useState<boolean>(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -62,17 +61,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     loadData();
   }, []);
 
-  const handleSeed = async () => {
-    setSeeding(true);
-    try {
-      await api.seedDemonstrationData();
-      await loadData();
-    } catch (err: any) {
-      setError(`Seeding failed: ${err.message}`);
-    } finally {
-      setSeeding(false);
-    }
-  };
+
 
   // Filtered incidents
   const filteredIncidents = incidents.filter((inc) => {
@@ -343,15 +332,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Table / Empty State */}
         {filteredIncidents.length === 0 ? (
           <div className="p-12 text-center rounded-xl border border-dashed border-slate-800 bg-slate-900/30 space-y-3">
-            <p className="text-slate-400 text-sm">No incidents match the active filters or query.</p>
+            <p className="text-slate-400 text-sm">
+              {incidents.length === 0
+                ? 'No civic incidents recorded in the database yet. The system is ready to receive citizen reports.'
+                : 'No incidents match the active filters or search query.'}
+            </p>
             {incidents.length === 0 && (
               <div className="pt-2">
                 <button
-                  onClick={handleSeed}
-                  disabled={seeding}
-                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-teal-600 hover:bg-teal-500 text-white shadow-md shadow-teal-600/20 transition-all disabled:opacity-50"
+                  onClick={onNavigateToIntake}
+                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-teal-600 hover:bg-teal-500 text-white shadow-md shadow-teal-600/20 transition-all"
                 >
-                  {seeding ? 'Seeding Demonstration Records...' : 'Seed Sample Demonstration Incidents'}
+                  + Report New Incident
                 </button>
               </div>
             )}

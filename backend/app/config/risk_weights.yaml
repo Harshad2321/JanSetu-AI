@@ -1,0 +1,39 @@
+# JanSetu AI — Risk & Priority Weight Configuration (Phase 5, P5.4)
+# Demonstrates explainable heuristics; not a validated public safety model.
+version: "1.0.0"
+
+category_base_scores:
+  waterlogging: 35.0
+  pothole: 25.0
+  garbage: 20.0
+  uncertain_other: 15.0
+
+factor_weights:
+  immediate_danger: 25.0
+  severity: 15.0
+  public_exposure: 15.0
+  people_affected: 10.0
+  duration: 10.0
+  recurrence: 5.0
+  accessibility_safeguarding: 10.0
+
+priority_bands:
+  critical: 80.0
+  high: 60.0
+  medium: 40.0
+  low: 0.0
+
+# Mandatory escalation rules: independently gated; overrides numerical score
+mandatory_escalation_rules:
+  - id: "E01_LIFE_SAFETY"
+    description: "Active cave-in, open manhole, high-voltage wire submerged, or direct life-safety threat"
+    keywords: ["open manhole", "manhole open", "cave-in", "cave in", "electric wire", "current", "electrocution", "collapsed road", "sinkhole"]
+  - id: "E02_EMERGENCY_CORRIDOR"
+    description: "Complete blockage of hospital access, ambulance route, or primary emergency corridor"
+    keywords: ["hospital blocked", "ambulance blocked", "hospital gate", "emergency corridor", "fire station route"]
+  - id: "E03_ACCIDENT_OCCURRED"
+    description: "Physical injury or vehicular collision reported due to defect"
+    keywords: ["accident", "injury", "injured", "toppled", "tripped yesterday", "broken leg", "casualty"]
+  - id: "E04_VULNERABLE_POPULATION"
+    description: "Hazard directly obstructing primary school, childcare facility, or elderly care center"
+    keywords: ["primary school", "children walking", "school entrance", "maternity ward", "elderly home"]

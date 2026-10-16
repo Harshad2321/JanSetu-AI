@@ -26,6 +26,7 @@ from fastapi.responses import JSONResponse
 from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.health import router as health_router
 from app.api.routes.incidents import router as incidents_router
+from app.api.routes.ml import router as ml_router
 from app.config import settings
 from app.db.session import init_db
 
@@ -125,12 +126,14 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(incidents_router, prefix="/api/v1")
+app.include_router(ml_router, prefix="/api/v1")
 
 # Direct /health endpoint
 app.include_router(health_router)
 
 # Backward-compatibility routes for legacy callers (/api/incidents)
 app.include_router(incidents_router, prefix="/api")
+app.include_router(ml_router, prefix="/api")
 
 
 @app.get("/", tags=["Health"])

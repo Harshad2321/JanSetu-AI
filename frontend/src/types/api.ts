@@ -144,6 +144,7 @@ export interface AuditEvent {
   agent: string;
   action: string;
   result: string;
+  correlation_id?: string | null;
 }
 
 export interface AgentExecutionTrace {
@@ -215,3 +216,122 @@ export interface HealthResponse {
   groq_configured: boolean;
   timestamp: string;
 }
+
+export interface MLMetricsResponse {
+  status: string;
+  model_name: string;
+  model_version: string;
+  artifact_path: string;
+  is_available: boolean;
+  classes: string[];
+  vision_provider: {
+    name: string;
+    is_configured: boolean;
+    status: string;
+  };
+  evaluation_report?: {
+    model_name: string;
+    model_version: string;
+    classes: string[];
+    evaluation_timestamp: string;
+    random_state: number;
+    test_partition_metrics: {
+      num_samples: number;
+      accuracy: number;
+      macro_f1: number;
+      macro_precision: number;
+      macro_recall: number;
+      per_class: Record<string, { precision: number; recall: number; f1: number; support: number }>;
+      confusion_matrix: { classes: string[]; matrix: number[][] };
+    };
+    challenge_set_metrics?: {
+      num_samples: number;
+      accuracy: number;
+      macro_f1: number;
+      macro_precision: number;
+      macro_recall: number;
+      per_class: Record<string, { precision: number; recall: number; f1: number; support: number }>;
+      confusion_matrix: { classes: string[]; matrix: number[][] };
+    };
+  };
+}
+
+export interface MLPredictResponse {
+  predicted_label: string | null;
+  confidence: number | null;
+  scores: Record<string, number>;
+  available: boolean;
+  error?: string | null;
+  model_name: string;
+  model_version: string;
+}
+
+export interface CivicIncidentTwin {
+  incident_id: string;
+  original_input: string;
+  normalized_summary?: string | null;
+  category: string;
+  status: string;
+  evidence_status?: string | null;
+  is_synthetic: boolean;
+  location?: Record<string, any> | null;
+  has_photograph: boolean;
+  retry_count: number;
+  predictions: Array<{
+    model_name: string;
+    model_version: string;
+    predicted_category?: string | null;
+    confidence?: number | null;
+    available: boolean;
+    error?: string | null;
+    scores?: Record<string, number>;
+  }>;
+  plans: Array<{
+    plan_id: string;
+    incident_id: string;
+    plan_type: string;
+    version: number;
+    actions: string[];
+    resource_requirements: string[];
+    closure_criteria: string[];
+  }>;
+  current_plan?: Record<string, any> | null;
+  execution_attempts: Array<{
+    attempt_id: string;
+    incident_id: string;
+    plan_id: string;
+    simulated: boolean;
+    outcome: string;
+    failure_reason?: string | null;
+    timestamp: string;
+  }>;
+  failures: Array<any>;
+  recovery_decisions: Array<any>;
+  verification_results: Array<{
+    verification_id: string;
+    incident_id: string;
+    passed: boolean;
+    result: string;
+    criteria_met: string[];
+    unmet_criteria: string[];
+    verified_at: string;
+  }>;
+  human_corrections: Array<any>;
+  duplicate_candidates: Array<{
+    candidate_id?: string;
+    duplicate_incident_id?: string;
+    distance_meters?: number | null;
+    text_similarity?: number | null;
+    review_status: string;
+    rationale?: string;
+  }>;
+  timeline: Array<{
+    timestamp: string;
+    agent: string;
+    action: string;
+    result: string;
+    correlation_id?: string | null;
+  }>;
+  priority?: Record<string, any> | null;
+}
+

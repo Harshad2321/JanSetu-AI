@@ -12,6 +12,9 @@ from app.schemas.incident import (
     AuditEvent
 )
 
+def _resolve_correlation_id(a: Optional[str], b: Optional[str]) -> Optional[str]:
+    return a or b
+
 class IncidentState(TypedDict, total=False):
     incident_id: str
     raw_input: str
@@ -37,12 +40,21 @@ class IncidentState(TypedDict, total=False):
     validation: Optional[ValidationDecision]
     closure_evidence: Optional[ClosureEvidence]
     synthetic_closure_evidence: Optional[Any]
+    verification_result: Optional[Any]
     
     # Internal state tracking
-    status: str # NEW, RECORDED_PENDING_REVIEW, AWAITING_CLARIFICATION, AWAITING_HUMAN_REVIEW, AWAITING_EVIDENCE_RETAKE, TRIAGED, PLANNING, VALIDATING, SIMULATING, VERIFYING_CLOSURE, RECOVERING, ESCALATED, SIMULATED_RESOLVED, CLOSURE_BLOCKED, RESOLVED, DUPLICATE
+    status: str # NEW, SUBMITTED, NEEDS_CLARIFICATION, CLASSIFIED, TRIAGED, PLANNING, VALIDATING, SIMULATING, VERIFYING_CLOSURE, AWAITING_VERIFICATION, VERIFIED_CLOSED, SIMULATED_RESOLVED, CLOSURE_BLOCKED, RECOVERING, ESCALATED, HUMAN_REVIEW
     retry_count: int
+    correlation_id: Annotated[Optional[str], _resolve_correlation_id]
+    target_closed_status: Optional[str]
+    requires_human_signoff: Optional[bool]
+    supervisor_signoff: Optional[bool]
+    is_escalated: Optional[bool]
+    escalation_reasons: Optional[List[str]]
     audit_timeline: Annotated[List[AuditEvent], operator.add]
     
     # Simulation context for mock failures
     simulation_result: Optional[str]
+    simulation_scenario: Optional[Any]
+    simulation_seed: Optional[int]
     failure_reason: Optional[str]

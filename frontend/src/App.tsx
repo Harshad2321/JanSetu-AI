@@ -1,16 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Navbar, type ActiveTab } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
-import { DashboardView } from './components/overview/DashboardView';
-import { CitizenSubmissionForm } from './components/submission/CitizenSubmissionForm';
-import { IncidentWorkspaceView } from './components/workspace/IncidentWorkspaceView';
-import { AgentCommandCenterView } from './components/command/AgentCommandCenterView';
-import { SimulationLabView } from './components/simulation/SimulationLabView';
-import { AuditTimelineView } from './components/audit/AuditTimelineView';
-import { SystemHealthView } from './components/health/SystemHealthView';
 import { api } from './services/api';
 import type { HealthResponse, Incident } from './types/api';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
+
+const DashboardView = lazy(() => import('./components/overview/DashboardView').then(m => ({ default: m.DashboardView })));
+const IncidentExplorerView = lazy(() => import('./components/explorer/IncidentExplorerView').then(m => ({ default: m.IncidentExplorerView })));
+const CitizenSubmissionForm = lazy(() => import('./components/submission/CitizenSubmissionForm').then(m => ({ default: m.CitizenSubmissionForm })));
+const IncidentWorkspaceView = lazy(() => import('./components/workspace/IncidentWorkspaceView').then(m => ({ default: m.IncidentWorkspaceView })));
+const AgentCommandCenterView = lazy(() => import('./components/command/AgentCommandCenterView').then(m => ({ default: m.AgentCommandCenterView })));
+const SimulationLabView = lazy(() => import('./components/simulation/SimulationLabView').then(m => ({ default: m.SimulationLabView })));
+const MLModelLabView = lazy(() => import('./components/ml/MLModelLabView').then(m => ({ default: m.MLModelLabView })));
+const AuditTimelineView = lazy(() => import('./components/audit/AuditTimelineView').then(m => ({ default: m.AuditTimelineView })));
+const SystemArchitectureView = lazy(() => import('./components/architecture/SystemArchitectureView').then(m => ({ default: m.SystemArchitectureView })));
+const SystemHealthView = lazy(() => import('./components/health/SystemHealthView').then(m => ({ default: m.SystemHealthView })));
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('operations');
@@ -54,11 +58,6 @@ export default function App() {
     setRefreshTrigger((prev) => prev + 1);
   };
 
-  const handleDemonstrationSeeded = () => {
-    checkHealth();
-    setRefreshTrigger((prev) => prev + 1);
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500/30 selection:text-teal-200">
       {/* Top Navbar */}
@@ -67,7 +66,6 @@ export default function App() {
         onTabChange={setActiveTab}
         health={health}
         onRefreshHealth={checkHealth}
-        onSeeded={handleDemonstrationSeeded}
       />
 
       {/* Backend Offline Warning Banner */}
@@ -76,7 +74,7 @@ export default function App() {
           <div className="flex items-center gap-2 max-w-5xl mx-auto w-full">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
             <span>
-              <strong>Cannot connect to JanSetu AI Backend at {api.getBaseUrl()}.</strong> Ensure the FastAPI server is running (`uvicorn app.main:app --port 8000`).
+              <strong>Cannot connect to JanSetu AI Backend at {api.getBaseUrl()}.</strong> Ensure the FastAPI server is running (<code className="font-mono bg-rose-900/60 px-1 py-0.5 rounded">uvicorn app.main:app --port 8000</code>).
             </span>
             <button
               onClick={checkHealth}
@@ -92,57 +90,85 @@ export default function App() {
 
       {/* Main View Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeTab === 'operations' && (
-          <DashboardView
-            key={`dashboard-${refreshTrigger}`}
-            onSelectIncident={handleSelectIncident}
-            onNavigateToIntake={() => setActiveTab('submit')}
-          />
-        )}
+        <Suspense
+          fallback={
+            <div className="flex flex-col items-center justify-center py-24 text-slate-400">
+              <Loader2 className="w-8 h-8 text-teal-400 animate-spin mb-3" />
+              <span className="text-xs uppercase tracking-widest font-semibold text-slate-400">
+                Loading JanSetu Component...
+              </span>
+            </div>
+          }
+        >
+          {activeTab === 'operations' && (
+            <DashboardView
+              key={`dashboard-${refreshTrigger}`}
+              onSelectIncident={handleSelectIncident}
+              onNavigateToIntake={() => setActiveTab('submit')}
+            />
+          )}
 
-        {activeTab === 'submit' && (
-          <CitizenSubmissionForm onSuccess={handleSubmissionSuccess} />
-        )}
+          {activeTab === 'explorer' && (
+            <IncidentExplorerView
+              key={`explorer-${refreshTrigger}`}
+              onSelectIncident={handleSelectIncident}
+              onOpenCommandCenter={handleOpenCommandCenter}
+              onNavigateToIntake={() => setActiveTab('submit')}
+            />
+          )}
 
-        {activeTab === 'workspace' && (
-          <IncidentWorkspaceView
-            key={`workspace-${selectedIncidentId || 'default'}-${refreshTrigger}`}
-            incidentId={selectedIncidentId}
-            onSelectIncident={setSelectedIncidentId}
-            onOpenCommandCenter={handleOpenCommandCenter}
-          />
-        )}
+          {activeTab === 'submit' && (
+            <CitizenSubmissionForm onSuccess={handleSubmissionSuccess} />
+          )}
 
-        {activeTab === 'command-center' && (
-          <AgentCommandCenterView
-            key={`command-${selectedIncidentId || 'default'}-${refreshTrigger}`}
-            incidentId={selectedIncidentId}
-            onSelectIncident={setSelectedIncidentId}
-          />
-        )}
+          {activeTab === 'workspace' && (
+            <IncidentWorkspaceView
+              key={`workspace-${selectedIncidentId || 'default'}-${refreshTrigger}`}
+              incidentId={selectedIncidentId}
+              onSelectIncident={setSelectedIncidentId}
+              onOpenCommandCenter={handleOpenCommandCenter}
+            />
+          )}
 
-        {activeTab === 'simulation-lab' && (
-          <SimulationLabView
-            key={`simulation-${selectedIncidentId || 'default'}-${refreshTrigger}`}
-            incidentId={selectedIncidentId}
-            onSelectIncident={setSelectedIncidentId}
-          />
-        )}
+          {activeTab === 'command-center' && (
+            <AgentCommandCenterView
+              key={`command-${selectedIncidentId || 'default'}-${refreshTrigger}`}
+              incidentId={selectedIncidentId}
+              onSelectIncident={setSelectedIncidentId}
+            />
+          )}
 
-        {activeTab === 'audit' && (
-          <AuditTimelineView
-            key={`audit-${selectedIncidentId || 'default'}-${refreshTrigger}`}
-            incidentId={selectedIncidentId}
-            onSelectIncident={setSelectedIncidentId}
-          />
-        )}
+          {activeTab === 'simulation-lab' && (
+            <SimulationLabView
+              key={`simulation-${selectedIncidentId || 'default'}-${refreshTrigger}`}
+              incidentId={selectedIncidentId}
+              onSelectIncident={setSelectedIncidentId}
+            />
+          )}
 
-        {activeTab === 'health' && (
-          <SystemHealthView
-            health={health}
-            onRefreshHealth={checkHealth}
-          />
-        )}
+          {activeTab === 'ml-lab' && (
+            <MLModelLabView />
+          )}
+
+          {activeTab === 'audit' && (
+            <AuditTimelineView
+              key={`audit-${selectedIncidentId || 'default'}-${refreshTrigger}`}
+              incidentId={selectedIncidentId}
+              onSelectIncident={setSelectedIncidentId}
+            />
+          )}
+
+          {activeTab === 'architecture' && (
+            <SystemArchitectureView />
+          )}
+
+          {activeTab === 'health' && (
+            <SystemHealthView
+              health={health}
+              onRefreshHealth={checkHealth}
+            />
+          )}
+        </Suspense>
       </main>
 
       {/* Global Footer */}

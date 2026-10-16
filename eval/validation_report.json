@@ -1,0 +1,98 @@
+{
+  "validation_timestamp": "2026-10-16T12:00:37.823400+00:00",
+  "total_checks": 11,
+  "passed_checks": 11,
+  "all_passed": true,
+  "ml_evaluation": {
+    "classifier_name": "TFIDF-LogisticRegression",
+    "classifier_version": "v1.0.0",
+    "total_train_samples": 300,
+    "total_challenge_samples": 30,
+    "data_leakage_detected": false,
+    "overlap_count": 0,
+    "reproduced_challenge_accuracy": 0.7333,
+    "saved_challenge_accuracy": 0.7333,
+    "saved_heldout_test_accuracy": 1.0,
+    "metrics_reproduced_identically": true,
+    "evaluation_split_provenance": "Train (240) / Held-Out Test (60) via stratified 80/20 seed=42; Challenge Set (30) with disjoint vocabulary"
+  },
+  "system_invariants_and_workflows": [
+    {
+      "id": "INV-1",
+      "title": "Closure Gating Requirement",
+      "description": "VERIFIED_CLOSED state strictly guarded by passing VerificationResult",
+      "passed": true,
+      "evidence": "Strictly enforced: Transition to VERIFIED_CLOSED raised TransitionError when missing or failing, and succeeded only with passed=True."
+    },
+    {
+      "id": "INV-2",
+      "title": "Simulation Labeling",
+      "description": "All execution attempts explicitly stamped with simulated=True",
+      "passed": true,
+      "evidence": "Pydantic ExecutionAttempt enforcement: attempt.simulated == True"
+    },
+    {
+      "id": "INV-3",
+      "title": "Mandatory Danger Escalation",
+      "description": "Hazard triggers immediate human escalation overriding baseline numerical scores",
+      "passed": true,
+      "evidence": "Escalated: True; Reasons: ['E01_LIFE_SAFETY: Active cave-in, open manhole, high-voltage wire submerged, or direct life-safety threat', 'E04_VULNERABLE_POPULATION: Hazard directly obstructing primary school, childcare facility, or elderly care center']; Priority Band: Critical"
+    },
+    {
+      "id": "INV-4",
+      "title": "Bounded Replanning Retries",
+      "description": "Exhaustion of MAX_RECOVERY_RETRIES (2) routes to HUMAN_REVIEW",
+      "passed": true,
+      "evidence": "Retry count: 2 >= 2; escalated_to_human=True; status=HUMAN_REVIEW"
+    },
+    {
+      "id": "INV-5",
+      "title": "History & Plan Version Preservation",
+      "description": "Failed plans and execution attempts remain stored in relational Twin upon replanning",
+      "passed": true,
+      "evidence": "Stored plans: 2 (versions: [1, 2]); Stored attempts: 1"
+    },
+    {
+      "id": "INV-6",
+      "title": "Unsafe & Unauthorized Plan Rejection",
+      "description": "Adaptive recovery enforces safety clearances and approval constraints",
+      "passed": true,
+      "evidence": "Eligible alternatives: 5 (all certified=True, authorized=True); Explicitly rejected unsafe/unauthorized: True"
+    },
+    {
+      "id": "INV-7",
+      "title": "Duplicate Review Invariant",
+      "description": "Nearby similar reports flagged as UNCONFIRMED candidates; zero auto-merging",
+      "passed": true,
+      "evidence": "Candidate status: 'UNCONFIRMED'; Both records preserved (ID INC-NEW-DUP vs INC-1002); auto_merged=False"
+    },
+    {
+      "id": "INV-8",
+      "title": "Graceful Model Failure",
+      "description": "Unavailable model flags available=False without fabricating predictions",
+      "passed": true,
+      "evidence": "Available: False; Error: 'Model artifact not available at non_existent_model.joblib'; Predicted label: None"
+    },
+    {
+      "id": "WF-1",
+      "title": "Multimodal Disagreement Workflow",
+      "description": "Conflicting NLP and Vision predictions route to clarification without forcing a category",
+      "passed": true,
+      "evidence": "Status: DISAGREEMENT; Disagreement: True; Forced category: None; Clarification questions: 1"
+    },
+    {
+      "id": "WF-2",
+      "title": "Independent Verification Gate",
+      "description": "Verifier blocks closure if required evidence or supervisor sign-off is missing",
+      "passed": true,
+      "evidence": "Result: HUMAN_REVIEW_REQUIRED; Passed: False; Rejection reasons: ['Mandatory human supervisor sign-off required before closure.']"
+    },
+    {
+      "id": "WF-3",
+      "title": "Database Transaction Rollback Integrity",
+      "description": "Atomic multi-step updates roll back completely upon error",
+      "passed": true,
+      "evidence": "Rollback confirmed: transaction rolled back cleanly and record found=False"
+    }
+  ]
+}

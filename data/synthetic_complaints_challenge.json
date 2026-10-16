@@ -1,0 +1,242 @@
+[
+  {
+    "id": "chal_pothole_01",
+    "text": "The carriageway bitumen has disintegrated into a moon crater; an autorickshaw toppled sideways this morning near the flyover pillar.",
+    "label": "pothole",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_pothole_02",
+    "text": "Tar layer peeled off exposing sharp rubble aggregates; scooters skidding during morning rush hours outside the metro station.",
+    "label": "pothole",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_pothole_03",
+    "text": "फ्लाईओवर के उतरते ही डामर उखड़ चुका है और धातु की गिट्टियां बिखरने से दोपहिया का संतुलन बिगड़ रहा है।",
+    "label": "pothole",
+    "language": "hi",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_pothole_04",
+    "text": "रस्त्यावरील डांबर पूर्णपणे निघून गेले असून लोखंडी गज आणि खडी बाहेर आल्याने वाहनांचे टायर फुटत आहेत.",
+    "label": "pothole",
+    "language": "mr",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_pothole_05",
+    "text": "Road ka surface ekdum cratered ho chuka hai, sharp stones exposed hain jisse balance bigad raha hai.",
+    "label": "pothole",
+    "language": "hinglish",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_pothole_06",
+    "text": "Depression on south carriageway forming dangerous wheel-trap for cyclers and delivery agents.",
+    "label": "pothole",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_pothole_07",
+    "text": "गाड़ी का चेसिस नीचे टकरा गया इतना भयानक गर्त बना हुआ है सड़क के बीचों-बीच।",
+    "label": "pothole",
+    "language": "hi",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_pothole_08",
+    "text": "वाहनाचा एक्सल तुटण्याची वेळ आली आहे इतका खोल खड्डा पुलाच्या पायथ्याशी निर्माण झालाय.",
+    "label": "pothole",
+    "language": "mr",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_pothole_09",
+    "text": "Suspension damage ho gaya scooty ka because bitumen layer sink ho gayi hai under heavy axle load.",
+    "label": "pothole",
+    "language": "hinglish",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_pothole_10",
+    "text": "Unsurfaced trench left unpaved after utility pipe excavation posing severe collision hazard.",
+    "label": "pothole",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_01",
+    "text": "Subway underpass completely inundated up to waist height, marooning commuter buses in brown sludge.",
+    "label": "waterlogging",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_02",
+    "text": "Monsoon culvert backflow submerged the ground floor staircases; electrical meters submerged.",
+    "label": "waterlogging",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_03",
+    "text": "अंडरपास में नाले का गंदा पानी भर गया है, बिजली के पोल तक पानी पहुंचने से करंट का अंदेशा है।",
+    "label": "waterlogging",
+    "language": "hi",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_04",
+    "text": "रेल्वे भुयारी मार्गात सांडपाण्याचा फुगवटा निर्माण झाला असून संपूर्ण वाहतूक ठप्प पडली आहे.",
+    "label": "waterlogging",
+    "language": "mr",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_05",
+    "text": "Underpass submerged ho chuka hai dirty gutter runoff se, electric feeder box paani mein doob raha hai.",
+    "label": "waterlogging",
+    "language": "hinglish",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_06",
+    "text": "Backflow in stormwater outlet drowning the entire access alleyway under contaminated urban runoff.",
+    "label": "waterlogging",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_07",
+    "text": "गली में जमा दूषित जलस्तर कम नहीं हो रहा, बच्चों का स्कूल जाना असंभव हो गया है।",
+    "label": "waterlogging",
+    "language": "hi",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_08",
+    "text": "पाण्याचा निचरा करणारी वाहिनी तुटल्यामुळे चिखल आणि मैला रस्त्यावर साचून तळे साचले आहे.",
+    "label": "waterlogging",
+    "language": "mr",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_09",
+    "text": "Sludge water drain nahi ho raha hai street se, stinking dirty pond ban chuka hai society ke entrance pe.",
+    "label": "waterlogging",
+    "language": "hinglish",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_water_10",
+    "text": "Retention basin overwhelmed; stagnant brackish water blocking civic hospital access ramp.",
+    "label": "waterlogging",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_01",
+    "text": "Rancid bio-waste and commercial poultry remnants decaying in open view, producing nauseating fumes.",
+    "label": "garbage",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_02",
+    "text": "Unauthorized dumping site emitting putrid methane odors; swarms of flies encroaching primary school.",
+    "label": "garbage",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_03",
+    "text": "अस्पताल के निकट मेडिकल अवशेष और सड़ा हुआ गीला कचरा खुला पड़ा है, तीव्र बदबू से जीना दूभर है।",
+    "label": "garbage",
+    "language": "hi",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_04",
+    "text": "उघड्यावर टाकलेल्या कुजक्या कचऱ्यामुळे माशांचा सुळसुळाट झाला असून तीव्र दुर्गंधीने श्वास घेणे अशक्य झाले आहे.",
+    "label": "garbage",
+    "language": "mr",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_05",
+    "text": "Open space pe decomposing organic waste dump kar diya hai, intolerable foul smell and flies infestation.",
+    "label": "garbage",
+    "language": "hinglish",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_06",
+    "text": "Municipal skip bin fractured and overflowing with fermenting refuse blocking pedestrian walkway.",
+    "label": "garbage",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_07",
+    "text": "बाजार का सड़ा-गला जैविक कचरा खुले मैदान में फेंका जा रहा है, आवारा कुत्ते आतंक मचा रहे हैं।",
+    "label": "garbage",
+    "language": "hi",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_08",
+    "text": "कचरा संकलन केंद्र बंद असल्याने नागरीकांनी रस्त्यावरच कचऱ्याचे ढीग केले आहेत, त्वरित उचलण्यात यावेत.",
+    "label": "garbage",
+    "language": "mr",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_09",
+    "text": "Plastic waste and wet rotting dump road edge pe block kar raha hai, sanitary inspection team bhejye.",
+    "label": "garbage",
+    "language": "hinglish",
+    "is_synthetic": true,
+    "partition": "challenge"
+  },
+  {
+    "id": "chal_garbage_10",
+    "text": "Pungent heaps of uncleared household debris creating breeding ground for rodents near maternity ward.",
+    "label": "garbage",
+    "language": "en",
+    "is_synthetic": true,
+    "partition": "challenge"
+  }
+]

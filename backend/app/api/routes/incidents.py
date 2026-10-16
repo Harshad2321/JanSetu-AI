@@ -394,6 +394,23 @@ def get_incident_audit(
     return incident.to_response().audit_timeline
 
 
+@router.get("/{incident_id}/twin")
+def get_incident_twin_endpoint(
+    incident_id: str,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Retrieve the read-oriented Civic Incident Twin record."""
+    from app.twin import get_incident_twin
+
+    twin = get_incident_twin(db, incident_id)
+    if not twin:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Incident with ID '{incident_id}' not found in Twin repository.",
+        )
+    return twin.model_dump()
+
+
 @router.post("/{incident_id}/simulate", response_model=WorkflowRunResponse)
 def simulate_scenario_endpoint(
     incident_id: str,

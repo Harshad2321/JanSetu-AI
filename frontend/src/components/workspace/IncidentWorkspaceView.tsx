@@ -12,7 +12,7 @@ import {
   Wrench,
   XCircle,
 } from 'lucide-react';
-import type { Incident, SupportedScenario, WorkflowRunResponse } from '../../types/api';
+import type { Incident, SupportedScenario, WorkflowRunResponse, CivicIncidentTwin } from '../../types/api';
 import { api } from '../../services/api';
 import { OperationalStatusBadge, EvidenceStatusBadge } from '../common/StatusBadge';
 
@@ -28,6 +28,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
   onOpenCommandCenter,
 }) => {
   const [incident, setIncident] = useState<Incident | null>(null);
+  const [twin, setTwin] = useState<CivicIncidentTwin | null>(null);
   const [allIncidents, setAllIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [executing, setExecuting] = useState<boolean>(false);
@@ -51,8 +52,12 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getIncident(id);
+      const [data, twinData] = await Promise.all([
+        api.getIncident(id),
+        api.getIncidentTwin(id).catch(() => null),
+      ]);
       setIncident(data);
+      setTwin(twinData);
     } catch (err: any) {
       setError(err.message || 'Failed to load incident detail.');
     } finally {
@@ -556,6 +561,137 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
               </p>
             )}
           </div>
+
+          {/* Civic Incident Twin Historical Records */}
+          {twin && (
+            <div className="p-5 rounded-2xl border border-teal-500/30 bg-slate-900/70 backdrop-blur-md space-y-5 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-5 h-5 text-teal-400" />
+                  <h4 className="text-sm font-bold text-white tracking-tight">
+                    Civic Incident Twin — Historical Digital Record
+                  </h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/30 font-bold">
+                    SYNTHETIC ACADEMIC POC
+                  </span>
+                </div>
+              </div>
+
+              {/* Version-Preserved Response Plans */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold uppercase text-slate-300">
+                    Preserved Response Plans ({twin.plans?.length || 0} versions)
+                  </span>
+                  <span className="text-[11px] font-mono text-slate-500">Dual-Track: Permanent & Relief</span>
+                </div>
+
+                {twin.plans && twin.plans.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {twin.plans.map((p, idx) => (
+                      <div key={idx} className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/80 space-y-2 text-xs">
+                        <div className="flex items-center justify-between font-mono">
+                          <span className="font-bold text-teal-300">{p.plan_id}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+                            Version {p.version} • {p.plan_type}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-mono text-slate-500 block">Actions:</span>
+                          <ul className="list-disc list-inside space-y-0.5 text-slate-300 text-[11px] mt-0.5">
+                            {p.actions.map((act, aIdx) => (
+                              <li key={aIdx}>{act}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-mono text-slate-500 block">Closure Criteria:</span>
+                          <ul className="list-disc list-inside space-y-0.5 text-slate-400 text-[10px] mt-0.5">
+                            {p.closure_criteria.map((crit, cIdx) => (
+                              <li key={cIdx}>{crit}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No historical plans recorded yet.</p>
+                )}
+              </div>
+
+              {/* Simulated Execution Attempts (Invariant 2) */}
+              <div className="space-y-3 pt-3 border-t border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold uppercase text-slate-300">
+                    Simulated Execution Log ({twin.execution_attempts?.length || 0} attempts)
+                  </span>
+                  <span className="text-[10px] font-mono text-amber-400">simulated=True (Invariant 2)</span>
+                </div>
+
+                {twin.execution_attempts && twin.execution_attempts.length > 0 ? (
+                  <div className="space-y-2">
+                    {twin.execution_attempts.map((att, idx) => (
+                      <div key={idx} className="p-3 rounded-lg border border-slate-800 bg-slate-950/70 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2 font-mono">
+                            <span className="font-bold text-slate-200">{att.attempt_id}</span>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                              att.outcome === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+                            }`}>
+                              {att.outcome}
+                            </span>
+                          </div>
+                          {att.failure_reason && (
+                            <p className="text-[11px] text-rose-300 font-mono">Reason: {att.failure_reason}</p>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          {new Date(att.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No execution attempts simulated yet.</p>
+                )}
+              </div>
+
+              {/* Independent Verification Outcomes (Invariant 1) */}
+              <div className="space-y-3 pt-3 border-t border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold uppercase text-slate-300">
+                    Independent Verification Records ({twin.verification_results?.length || 0} audits)
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-400">Invariant 1 Gate</span>
+                </div>
+
+                {twin.verification_results && twin.verification_results.length > 0 ? (
+                  <div className="space-y-2">
+                    {twin.verification_results.map((v, idx) => (
+                      <div key={idx} className="p-3 rounded-lg border border-slate-800 bg-slate-950/70 text-xs space-y-1.5">
+                        <div className="flex items-center justify-between font-mono">
+                          <span className="font-bold text-teal-300">{v.verification_id}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                            v.passed ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                          }`}>
+                            {v.passed ? 'VERIFICATION PASSED' : 'VERIFICATION FAILED'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400">
+                          Criteria Satisfied: {v.criteria_met?.length || 0} • Unmet: {v.unmet_criteria?.length || 0}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No independent verification records present.</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

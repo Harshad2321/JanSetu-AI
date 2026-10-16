@@ -120,10 +120,23 @@ export const api = {
     return handleResponse<AuditEvent[]>(res);
   },
 
-  async seedDemonstrationData(): Promise<{ message: string; seeded_ids: string[] }> {
-    const res = await fetch(`${API_BASE_URL}/api/v1/incidents/seed`, {
+  async getIncidentTwin(incidentId: string): Promise<import('../types/api').CivicIncidentTwin> {
+    const res = await fetch(`${API_BASE_URL}/api/v1/incidents/${incidentId}/twin`);
+    return handleResponse<import('../types/api').CivicIncidentTwin>(res);
+  },
+
+  async getMLMetrics(): Promise<import('../types/api').MLMetricsResponse> {
+    const res = await fetch(`${API_BASE_URL}/api/v1/ml/metrics`);
+    return handleResponse<import('../types/api').MLMetricsResponse>(res);
+  },
+
+  async predictComplaint(text: string): Promise<import('../types/api').MLPredictResponse> {
+    const res = await fetch(`${API_BASE_URL}/api/v1/ml/predict`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
     });
-    return handleResponse<{ message: string; seeded_ids: string[] }>(res);
+    return handleResponse<import('../types/api').MLPredictResponse>(res);
   },
 };
+

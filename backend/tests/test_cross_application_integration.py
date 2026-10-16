@@ -1,15 +1,16 @@
 """
-JanSetu AI — Cross-Application Integration Tests (Phase 6).
+JanSetu AI — REST API Client Integration Tests.
 
-Verifies that both the React application and Streamlit companion interact with
-the same underlying FastAPI service contracts, preserve evidence/operational status
+Verifies that HTTP client wrappers interact reliably with
+the underlying FastAPI service contracts, preserve evidence/operational status
 decoupling, enforce deterministic closure verification, and handle failures without
 leaking credentials or raw payloads.
 """
 
 import io
 from pathlib import Path
-from typing import Generator
+from typing import Any, Dict, Generator, List, Optional
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
@@ -26,16 +27,50 @@ from app.schemas.incident import (
     LocationSource,
     OperationalStatus,
 )
-import sys
-WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent
-if str(WORKSPACE_ROOT) not in sys.path:
-    sys.path.insert(0, str(WORKSPACE_ROOT))
 
-from streamlit_app.api_client import (
-    BackendAPIError,
-    BackendConnectionError,
-    JanSetuAPIClient,
-)
+
+class BackendConnectionError(Exception):
+    """Raised when the FastAPI backend cannot be reached."""
+    pass
+
+
+class BackendAPIError(Exception):
+    """Raised when the FastAPI backend returns an HTTP error."""
+    def __init__(self, status_code: int, detail: str):
+        super().__init__(f"HTTP {status_code}: {detail}")
+        self.status_code = status_code
+        self.detail = detail
+
+
+class JanSetuAPIClient:
+    """HTTP client wrapper for the JanSetu AI FastAPI REST service."""
+
+    def __init__(self, base_url: str = "http://127.0.0.1:8000", timeout: float = 30.0):
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+
+    def _handle_response(self, response: httpx.Response) -> Any:
+        if not response.is_success:
+            error_msg = f"Request failed with status {response.status_code}"
+            try:
+                err_data = response.json()
+                if isinstance(err_data, dict):
+                    error_msg = err_data.get("detail") or err_data.get("error") or error_msg
+            except Exception:
+                error_msg = response.text or error_msg
+            raise BackendAPIError(response.status_code, str(error_msg))
+        return response.json()
+
+    def get_health(self) -> Dict[str, Any]:
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                res = client.get(f"{self.base_url}/health")
+                return self._handle_response(res)
+        except httpx.RequestError as exc:
+            raise BackendConnectionError(
+                f"Cannot connect to JanSetu backend at {self.base_url}. "
+                f"Ensure FastAPI is running: {str(exc)}"
+            )
 
 
 @pytest.fixture
@@ -77,7 +112,7 @@ def cross_test_env(tmp_path: Path):
 class MockTransportClient(JanSetuAPIClient):
     """
     Subclass of JanSetuAPIClient that dispatches directly to FastAPI's TestClient
-    to verify Streamlit client logic without requiring a live socket port during test runs.
+    to verify client logic without requiring a live socket port during test runs.
     """
     def __init__(self, test_client: TestClient):
         super().__init__(base_url="http://testserver")
@@ -181,7 +216,7 @@ def make_test_jpg(color="gray") -> bytes:
 # ============================================================================
 
 def test_shared_api_creation_and_retrieval(cross_test_env):
-    """Test incident creation and retrieval using the Streamlit client against FastAPI."""
+    """Test incident creation and retrieval using the API client against FastAPI."""
     with TestClient(app) as test_client:
         client = MockTransportClient(test_client)
 
@@ -236,7 +271,7 @@ def test_evidence_and_operational_statuses_remain_distinct(cross_test_env):
 
 
 def test_dashboard_summary_traces_and_audit_retrieval(cross_test_env):
-    """Streamlit client retrieves real dashboard metrics, audit timeline, and traces."""
+    """Client retrieves real dashboard metrics, audit timeline, and traces."""
     with TestClient(app) as test_client:
         client = MockTransportClient(test_client)
 

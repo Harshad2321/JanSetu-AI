@@ -559,3 +559,29 @@ def test_zero_secrets_or_payload_leakage(client: TestClient):
     assert "GROQ_API_KEY" not in text_data
     assert "data:image/jpeg;base64," not in text_data
     assert "sqlite:///" not in text_data
+
+
+# ============================================================================
+# 17. ML Model Lab Endpoints
+# ============================================================================
+
+def test_ml_model_metrics_endpoint(client: TestClient):
+    """Verifies ML model metrics endpoint returns model info and evaluation data."""
+    resp = client.get("/api/v1/ml/metrics")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "status" in data
+    assert data["model_name"] == "TFIDF-LogisticRegression"
+    assert "classes" in data
+    assert "vision_provider" in data
+
+
+def test_ml_predict_endpoint(client: TestClient):
+    """Verifies live complaint prediction endpoint returns predicted category and scores."""
+    resp = client.post("/api/v1/ml/predict", json={"text": "Deep dangerous pothole on the expressway"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "predicted_label" in data
+    assert "confidence" in data
+    assert "scores" in data
+

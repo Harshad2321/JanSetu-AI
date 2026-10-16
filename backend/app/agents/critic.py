@@ -98,12 +98,15 @@ def critic_node(state: IncidentState) -> Dict[str, Any]:
     else:  # ESCALATE
         next_status = OperationalStatus.ESCALATED.value
 
+    cid = state.get("correlation_id") or f"corr_{state.get('incident_id', 'unknown')}"
     now_iso = datetime.now(timezone.utc).isoformat()
     audit_event = AuditEvent(
         timestamp=now_iso,
         agent="Critic Agent",
         action=f"Plan Review: {decision.status}",
         result=f"Status: {decision.status} | Feedback: {decision.feedback} (Retry: {retry_count}/{MAX_PLANNING_RETRIES})",
+        correlation_id=cid,
+        event_type="critic",
     )
 
     logger.info("Critic review complete: decision=%s, next_status=%s", decision.status, next_status)
@@ -111,5 +114,6 @@ def critic_node(state: IncidentState) -> Dict[str, Any]:
     return {
         "validation": decision,
         "status": next_status,
+        "correlation_id": cid,
         "audit_timeline": [audit_event.model_dump()],
     }

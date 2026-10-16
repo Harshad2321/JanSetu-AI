@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, RefreshCw, Search } from 'lucide-react';
+import { Download, Filter, RefreshCw, Search } from 'lucide-react';
 import type { Incident, AuditEvent } from '../../types/api';
 import { api } from '../../services/api';
 
@@ -84,6 +84,37 @@ export const AuditTimelineView: React.FC<AuditTimelineViewProps> = ({
     return { tag: 'Intake Rule Evaluator', color: 'border-slate-700 text-slate-400 bg-slate-800' };
   }
 
+  const handleExportJSON = () => {
+    if (!incidentId || activeEvents.length === 0) return;
+    const blob = new Blob([JSON.stringify(activeEvents, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audit_${incidentId}_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportCSV = () => {
+    if (!incidentId || activeEvents.length === 0) return;
+    const headers = ['timestamp', 'agent', 'action', 'result', 'correlation_id'];
+    const rows = activeEvents.map((e) => [
+      `"${e.timestamp}"`,
+      `"${e.agent.replace(/"/g, '""')}"`,
+      `"${e.action.replace(/"/g, '""')}"`,
+      `"${e.result.replace(/"/g, '""')}"`,
+      `"${(e.correlation_id || '').replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audit_${incidentId}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Controls */}
@@ -97,7 +128,7 @@ export const AuditTimelineView: React.FC<AuditTimelineViewProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <label className="text-xs font-mono text-slate-400">Target Incident:</label>
           <select
             value={incidentId || ''}
@@ -114,9 +145,31 @@ export const AuditTimelineView: React.FC<AuditTimelineViewProps> = ({
             <button
               onClick={() => loadAuditHistory(incidentId)}
               className="p-1.5 rounded-lg border border-slate-700 bg-slate-900 text-slate-400 hover:text-white"
+              title="Refresh audit"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             </button>
+          )}
+
+          {activeEvents.length > 0 && (
+            <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
+              <button
+                onClick={handleExportJSON}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-mono rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300 transition-colors"
+                title="Download JSON audit log"
+              >
+                <Download className="w-3 h-3 text-teal-400" />
+                JSON
+              </button>
+              <button
+                onClick={handleExportCSV}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-mono rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300 transition-colors"
+                title="Download CSV audit log"
+              >
+                <Download className="w-3 h-3 text-emerald-400" />
+                CSV
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -190,6 +243,15 @@ export const AuditTimelineView: React.FC<AuditTimelineViewProps> = ({
                   <p className="text-xs text-slate-300 leading-relaxed font-mono">
                     {ev.result}
                   </p>
+
+                  {ev.correlation_id && (
+                    <div className="pt-1 flex items-center gap-1.5 text-[10px] font-mono text-slate-500">
+                      <span>Trace Correlation ID:</span>
+                      <code className="px-1.5 py-0.5 rounded bg-slate-950 text-teal-400 border border-slate-800">
+                        {ev.correlation_id}
+                      </code>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -199,3 +261,4 @@ export const AuditTimelineView: React.FC<AuditTimelineViewProps> = ({
     </div>
   );
 };
+
