@@ -35,6 +35,7 @@ from app.schemas.api import (
     IncidentListResponse,
     IncidentResponse,
     SimulationScenarioRequest,
+    SupportedScenario,
     WorkflowRunRequest,
     WorkflowRunResponse,
 )
@@ -276,7 +277,25 @@ async def create_incident_endpoint(
     )
 
     created = create_incident(db, incident_model)
-    logger.info("Created incident %s with status %s", created.incident_id, created.operational_status)
+    logger.info("Created incident %s with initial status %s", created.incident_id, created.operational_status)
+
+    # Autonomous multi-agent pipeline: automatically triage, plan, validate, simulate, and verify upon submission
+    try:
+        wf_res = execute_incident_workflow(db, created)
+        logger.info(
+            "Autonomous lifecycle completed for %s: status=%s (simulated_resolved=%s)",
+            created.incident_id,
+            created.operational_status,
+            wf_res.is_simulated_resolution,
+        )
+    except Exception as exc:
+        logger.error(
+            "Autonomous workflow execution encountered an error for %s: %s",
+            created.incident_id,
+            exc,
+            exc_info=True,
+        )
+
     return created.to_response()
 
 
@@ -360,6 +379,27 @@ def run_workflow_endpoint(
             detail=f"Incident with ID '{incident_id}' not found.",
         )
 
+    # Avoid duplicate execution when already resolved and no scenario is requested
+    has_scenario = bool(run_req and (run_req.simulation_scenario or run_req.failure_reason))
+    if not has_scenario and incident.operational_status in (
+        OperationalStatus.SIMULATED_RESOLVED.value,
+        OperationalStatus.VERIFIED_CLOSED.value,
+    ):
+        op_status = OperationalStatus(incident.operational_status)
+        return WorkflowRunResponse(
+            incident_id=incident.incident_id,
+            operational_status=op_status,
+            evidence_status=incident.evidence_status,
+            is_simulated_resolution=(op_status == OperationalStatus.SIMULATED_RESOLVED),
+            simulation_scenario=None,
+            current_plan=incident.to_response().current_plan,
+            validation=incident.to_response().validation,
+            closure_evidence=incident.to_response().closure_evidence,
+            agent_traces=incident.to_response().agent_traces,
+            audit_timeline=incident.to_response().audit_timeline,
+            message="Incident has already been autonomously resolved. Preserving verified records.",
+        )
+
     response = execute_incident_workflow(db, incident, run_req)
     return response
 
@@ -414,7 +454,8 @@ def get_incident_twin_endpoint(
 @router.post("/{incident_id}/simulate", response_model=WorkflowRunResponse)
 def simulate_scenario_endpoint(
     incident_id: str,
-    req: SimulationScenarioRequest,
+    req: Optional[SimulationScenarioRequest] = None,
+    scenario: Optional[SupportedScenario] = Query(None),
     db: Session = Depends(get_db),
 ) -> WorkflowRunResponse:
     """Trigger a documented failure or success simulation scenario for demonstration."""
@@ -431,7 +472,8 @@ def simulate_scenario_endpoint(
             detail=f"Incident with ID '{incident_id}' not found.",
         )
 
-    workflow_req = WorkflowRunRequest(simulation_scenario=req.scenario)
+    chosen_scenario = (req.scenario if req and req.scenario else scenario) or SupportedScenario.NORMAL
+    workflow_req = WorkflowRunRequest(simulation_scenario=chosen_scenario)
     return execute_incident_workflow(db, incident, workflow_req)
 
 

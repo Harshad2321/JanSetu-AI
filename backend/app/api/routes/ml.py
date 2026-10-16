@@ -23,7 +23,18 @@ logger = logging.getLogger("jansetu.api.ml")
 
 router = APIRouter(prefix="/ml", tags=["ML Model Lab"])
 
-EVAL_METRICS_PATH = Path("eval/nlp_metrics.json")
+def _resolve_eval_metrics_path() -> Path:
+    candidates = [
+        Path("eval/nlp_metrics.json"),
+        Path(__file__).resolve().parent.parent.parent.parent / "eval" / "nlp_metrics.json",
+        Path("/app/eval/nlp_metrics.json"),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+EVAL_METRICS_PATH = _resolve_eval_metrics_path()
 
 
 class PredictRequest(BaseModel):

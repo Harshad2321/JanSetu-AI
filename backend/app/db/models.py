@@ -230,6 +230,9 @@ class IncidentModel(Base):
                     combined.append(event)
             self.audit_timeline = combined
 
+        if "agent_traces" in state and state["agent_traces"]:
+            self.agent_traces = to_jsonable(state["agent_traces"])
+
         self.updated_at = utc_now()
 
 

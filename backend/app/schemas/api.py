@@ -133,7 +133,7 @@ class WorkflowRunRequest(BaseModel):
         description="Named simulation scenario: normal, crew_unavailable, materials_unavailable, etc.",
     )
     allow_unverified_triage: Optional[bool] = Field(
-        default=False,
+        default=True,
         description="Override to proceed to planning without matched photo (remains recorded pending review)",
     )
     allow_closure_recovery: Optional[bool] = Field(

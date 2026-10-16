@@ -12,9 +12,6 @@ const IncidentWorkspaceView = lazy(() => import('./components/workspace/Incident
 const AgentCommandCenterView = lazy(() => import('./components/command/AgentCommandCenterView').then(m => ({ default: m.AgentCommandCenterView })));
 const SimulationLabView = lazy(() => import('./components/simulation/SimulationLabView').then(m => ({ default: m.SimulationLabView })));
 const MLModelLabView = lazy(() => import('./components/ml/MLModelLabView').then(m => ({ default: m.MLModelLabView })));
-const AuditTimelineView = lazy(() => import('./components/audit/AuditTimelineView').then(m => ({ default: m.AuditTimelineView })));
-const SystemArchitectureView = lazy(() => import('./components/architecture/SystemArchitectureView').then(m => ({ default: m.SystemArchitectureView })));
-const SystemHealthView = lazy(() => import('./components/health/SystemHealthView').then(m => ({ default: m.SystemHealthView })));
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('operations');
@@ -148,25 +145,6 @@ export default function App() {
 
           {activeTab === 'ml-lab' && (
             <MLModelLabView />
-          )}
-
-          {activeTab === 'audit' && (
-            <AuditTimelineView
-              key={`audit-${selectedIncidentId || 'default'}-${refreshTrigger}`}
-              incidentId={selectedIncidentId}
-              onSelectIncident={setSelectedIncidentId}
-            />
-          )}
-
-          {activeTab === 'architecture' && (
-            <SystemArchitectureView />
-          )}
-
-          {activeTab === 'health' && (
-            <SystemHealthView
-              health={health}
-              onRefreshHealth={checkHealth}
-            />
           )}
         </Suspense>
       </main>

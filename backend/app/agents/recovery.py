@@ -446,7 +446,7 @@ def recovery_node(state: IncidentState) -> Dict[str, Any]:
         )
         logger.warning("Recovery escalated: %s", output.rationale)
         return {
-            "status": OperationalStatus.ESCALATED.value,
+            "status": OperationalStatus.HUMAN_REVIEW.value,
             "retry_count": output.retry_count,
             "adaptive_recovery_output": output.model_dump(),
             "correlation_id": cid,

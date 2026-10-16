@@ -177,8 +177,8 @@ def make_fallback_result(
     
     extraction = IncidentExtraction(
         category=cat,
-        severity_indicators=["Analysis performed via fallback rules (API unavailable)"],
-        missing_info=["Automated multimodal analysis unavailable due to service error"],
+        severity_indicators=[f"Vision model provider offline ({error_type}); relying on active NLP classifier and declared civic details"],
+        missing_info=[f"Visual verification unavailable ({error_message}); photo stored for subsequent field review"],
         confidence_score=0.2,
         public_exposure_clues=[],
         extracted_location_clues=None,
@@ -187,7 +187,7 @@ def make_fallback_result(
     if has_image:
         evidence = PhotoEvidenceAnalysis(
             detected_category="unverified",
-            visible_evidence=f"Visual analysis unavailable: {error_message}. Awaiting human review.",
+            visible_evidence=f"Vision model provider offline ({error_type}): {error_message}. Preserving photo for inspection.",
             relevance_score=0.0,
             image_quality=ImageQualityAssessment.GOOD,
             confidence_score=0.0,

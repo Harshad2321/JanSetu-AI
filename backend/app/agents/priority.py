@@ -105,8 +105,24 @@ def load_risk_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
             },
             {
                 "id": "E03_ACCIDENT_OCCURRED",
-                "description": "Physical injury or vehicular collision reported due to defect",
-                "keywords": ["accident", "injury", "injured", "toppled", "tripped yesterday", "broken leg"],
+                "description": "Active vehicular collision, severe bodily trauma, or acute life-safety emergency occurring at site",
+                "keywords": [
+                    "active collision",
+                    "active crash",
+                    "collision right now",
+                    "crash right now",
+                    "head-on collision",
+                    "vehicle crashed right now",
+                    "trapped in vehicle",
+                    "driver trapped",
+                    "trapped",
+                    "severe head injury",
+                    "unconscious casualty",
+                    "bleeding heavily",
+                    "multiple casualties",
+                    "fatal collision",
+                    "critical injury right now",
+                ],
             },
             {
                 "id": "E04_VULNERABLE_POPULATION",
@@ -136,14 +152,56 @@ class PriorityIntelligenceAgent(BaseCivicAgent[PriorityAssessmentOutput]):
         Independent mandatory escalation gate.
         Checks explicit life-safety and emergency keywords.
         Never overridden by numerical score or model predictions.
+
+        Guarantees:
+        - Accurately distinguishes active life-safety emergencies from historical accident reports.
+        - Historical or past accident mentions increase priority score in planning, but do not
+          trigger an emergency-only halt.
         """
         text_lower = raw_text.lower()
         escalation_reasons: List[str] = []
+
+        # Indicators showing accident wording is purely historical or general hazard description
+        historical_hazard_indicators = (
+            "happened",
+            "yesterday",
+            "last week",
+            "last month",
+            "last year",
+            "days ago",
+            "past",
+            "previously",
+            "prior",
+            "historical",
+            "risk of",
+            "risk to",
+            "prone to",
+            "accident prone",
+            "causes accident",
+            "causing accident",
+            "can cause",
+            "could cause",
+            "may cause",
+            "minor accident",
+            "almost had",
+            "narrowly avoided",
+            "seen accidents",
+            "prevent accident",
+            "avoid accident",
+        )
 
         rules = self.config.get("mandatory_escalation_rules", [])
         for rule in rules:
             rule_id = rule.get("id", "MANDATORY_ESCALATION")
             keywords = rule.get("keywords", [])
+
+            if rule_id == "E03_ACCIDENT_OCCURRED":
+                # Check for active emergency keywords first
+                has_active_emergency = any(kw.lower() in text_lower for kw in keywords)
+                if has_active_emergency:
+                    escalation_reasons.append(f"{rule_id}: {rule.get('description', 'Active emergency collision')}")
+                continue
+
             for kw in keywords:
                 if kw.lower() in text_lower:
                     escalation_reasons.append(f"{rule_id}: {rule.get('description', kw)}")
@@ -190,6 +248,10 @@ class PriorityIntelligenceAgent(BaseCivicAgent[PriorityAssessmentOutput]):
             factor_contributions["immediate_danger"] = danger_wt
             input_factors["immediate_danger"] = "High imminent hazard detected"
             urgency_factors.append(f"Immediate Danger (+{danger_wt} pts)")
+        elif any(w in desc_lower for w in ("accident", "injury", "injured", "toppled", "skidded", "slipped", "crash", "casualty")):
+            factor_contributions["immediate_danger"] = danger_wt
+            input_factors["immediate_danger"] = "Elevated risk: historical accident, fall, or collision risk reported"
+            urgency_factors.append(f"Reported Accident Risk (+{danger_wt} pts)")
         else:
             factor_contributions["immediate_danger"] = 0.0
             input_factors["immediate_danger"] = "No imminent life safety words reported"

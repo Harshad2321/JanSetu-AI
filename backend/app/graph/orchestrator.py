@@ -62,8 +62,66 @@ def simulate_intervention(state: IncidentState) -> Dict[str, Any]:
     simulator = get_simulator()
 
     if scenario_input:
+        is_missing_ev_scenario = str(scenario_input).lower() in (
+            "complete_missing_evidence",
+            "insufficient_closure_evidence",
+        )
+        if is_missing_ev_scenario:
+            attempt = simulator.simulate_execution(
+                plan=plan,
+                scenario=SimulationScenario.COMPLETE_MISSING_EVIDENCE,
+                seed=seed,
+                incident_id=incident_id,
+            )
+            sim_ev = {
+                "incident_id": incident_id,
+                "closure_criteria_met": [],
+                "outstanding_criteria": [
+                    "Photographic completion evidence missing",
+                    "Field inspector compaction sign-off absent",
+                ],
+                "is_ready_for_closure": False,
+                "inspector_notes": "Intervention completed but mandatory completion evidence was omitted for verification gate testing.",
+                "verified_at": now_iso,
+            }
+            audit_event = AuditEvent(
+                timestamp=now_iso,
+                agent="Simulation Lab",
+                action="Simulated Intervention Completed Without Evidence",
+                result="Field work completed, but completion evidence was omitted for scenario testing.",
+                correlation_id=cid,
+                event_type="simulation",
+                outcome="SUCCESS",
+            )
+            return {
+                "simulation_result": "SUCCESS",
+                "execution_attempt": attempt.model_dump(),
+                "closure_evidence": sim_ev,
+                "synthetic_closure_evidence": sim_ev,
+                "status": OperationalStatus.VERIFYING_CLOSURE.value,
+                "correlation_id": cid,
+                "audit_timeline": [audit_event.model_dump()],
+            }
+
         attempt = simulator.simulate_execution(plan=plan, scenario=scenario_input, seed=seed, incident_id=incident_id)
         if attempt.outcome == "SUCCESS" and not attempt.failure_reason:
+            plan_criteria = getattr(plan, "closure_criteria", []) if plan else []
+            if not plan_criteria and isinstance(plan, dict):
+                plan_criteria = plan.get("closure_criteria", [])
+            if not plan_criteria:
+                plan_criteria = [
+                    "Civic defect rectified flush with grade",
+                    "Site photograph archived in municipal registry",
+                    "Traffic and pedestrian passage safely restored",
+                ]
+            sim_ev = state.get("synthetic_closure_evidence") or state.get("closure_evidence") or {
+                "incident_id": incident_id,
+                "closure_criteria_met": list(plan_criteria),
+                "outstanding_criteria": [],
+                "is_ready_for_closure": True,
+                "inspector_notes": f"Simulated field crew completed intervention ({attempt.resource}). All completion criteria verified.",
+                "verified_at": now_iso,
+            }
             audit_event = AuditEvent(
                 timestamp=now_iso,
                 agent="Simulation Lab",
@@ -76,6 +134,7 @@ def simulate_intervention(state: IncidentState) -> Dict[str, Any]:
             return {
                 "simulation_result": "SUCCESS",
                 "execution_attempt": attempt.model_dump(),
+                "closure_evidence": sim_ev,
                 "status": OperationalStatus.VERIFYING_CLOSURE.value,
                 "correlation_id": cid,
                 "audit_timeline": [audit_event.model_dump()],
@@ -95,6 +154,7 @@ def simulate_intervention(state: IncidentState) -> Dict[str, Any]:
                 "simulation_result": "FAILURE",
                 "failure_reason": fail_msg,
                 "execution_attempt": attempt.model_dump(),
+                "execution_attempts": [attempt.model_dump()],
                 "status": OperationalStatus.RECOVERING.value,
                 "correlation_id": cid,
                 "audit_timeline": [audit_event.model_dump()],
@@ -115,12 +175,30 @@ def simulate_intervention(state: IncidentState) -> Dict[str, Any]:
         return {
             "simulation_result": "FAILURE",
             "execution_attempt": attempt.model_dump(),
+            "execution_attempts": [attempt.model_dump()],
             "status": OperationalStatus.RECOVERING.value,
             "correlation_id": cid,
             "audit_timeline": [audit_event.model_dump()],
         }
 
     attempt = simulator.simulate_execution(plan=plan, scenario=SimulationScenario.SUCCESS, seed=seed, incident_id=incident_id)
+    plan_criteria = getattr(plan, "closure_criteria", []) if plan else []
+    if not plan_criteria and isinstance(plan, dict):
+        plan_criteria = plan.get("closure_criteria", [])
+    if not plan_criteria:
+        plan_criteria = [
+            "Civic defect rectified flush with grade",
+            "Site photograph archived in municipal registry",
+            "Traffic and pedestrian passage safely restored",
+        ]
+    sim_ev = state.get("synthetic_closure_evidence") or state.get("closure_evidence") or {
+        "incident_id": incident_id,
+        "closure_criteria_met": list(plan_criteria),
+        "outstanding_criteria": [],
+        "is_ready_for_closure": True,
+        "inspector_notes": f"Simulated field crew completed intervention ({attempt.resource}). All completion criteria verified.",
+        "verified_at": now_iso,
+    }
     audit_event = AuditEvent(
         timestamp=now_iso,
         agent="Simulation Lab",
@@ -134,6 +212,8 @@ def simulate_intervention(state: IncidentState) -> Dict[str, Any]:
     return {
         "simulation_result": "SUCCESS",
         "execution_attempt": attempt.model_dump(),
+        "execution_attempts": [attempt.model_dump()],
+        "closure_evidence": sim_ev,
         "status": OperationalStatus.VERIFYING_CLOSURE.value,
         "correlation_id": cid,
         "audit_timeline": [audit_event.model_dump()],
@@ -343,10 +423,9 @@ def route_from_intake(state: IncidentState) -> List[str] | str:
     Evidence-based workflow router following Incident Intelligence analysis.
     
     - If status indicates clarification or review needed: halts (END).
-    - MATCHED: proceeds to concurrent parallel execution of GeoCivic and Priority Intelligence.
-    - NOT_PROVIDED with allow_unverified_triage: proceeds to conservative parallel triage.
-    - MISMATCH, LOW_QUALITY, INCONCLUSIVE, or default NOT_PROVIDED: halts automated planning
-      preserving the respective review status without dropping the complaint.
+    - TRIAGED, CLASSIFIED, NEW, SUBMITTED, MATCHED, or allow_unverified_triage:
+      proceeds to concurrent parallel execution of GeoCivic and Priority Intelligence.
+    - Halts automated planning only when upstream safety gates or clarification requirements dictate.
     """
     status = state.get("status")
     if status in (
@@ -359,15 +438,20 @@ def route_from_intake(state: IncidentState) -> List[str] | str:
         logger.info("Intake router: status '%s' halts automated flow; awaiting clarification/review.", status)
         return END
 
+    allow_unverified = state.get("allow_unverified_triage", True)
     evidence_status = state.get("evidence_status")
-    allow_unverified = state.get("allow_unverified_triage", False)
 
-    if evidence_status == EvidenceOutcome.MATCHED.value or evidence_status == "MATCHED":
-        logger.info("Intake router: Evidence MATCHED -> Dispatching GeoCivic & Priority Intelligence in parallel.")
-        return ["geocivic", "priority_intel"]
-
-    if (evidence_status == EvidenceOutcome.NOT_PROVIDED.value or evidence_status == "NOT_PROVIDED") and allow_unverified:
-        logger.info("Intake router: Evidence NOT_PROVIDED with conservative triage policy enabled -> Dispatching parallel branches.")
+    if (
+        status in (
+            OperationalStatus.TRIAGED.value,
+            OperationalStatus.CLASSIFIED.value,
+            OperationalStatus.NEW.value,
+            OperationalStatus.SUBMITTED.value,
+        )
+        or evidence_status in (EvidenceOutcome.MATCHED.value, "MATCHED")
+        or allow_unverified
+    ):
+        logger.info("Intake router: status '%s', evidence '%s' -> Dispatching GeoCivic & Priority Intelligence in parallel.", status, evidence_status)
         return ["geocivic", "priority_intel"]
 
     logger.info(

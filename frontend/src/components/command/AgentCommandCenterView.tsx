@@ -8,7 +8,7 @@ import {
   Position,
   MarkerType,
 } from '@xyflow/react';
-import { Play, X } from 'lucide-react';
+import { X, RefreshCw, Radio, Clock, ShieldAlert } from 'lucide-react';
 import type { Incident, AuditEvent } from '../../types/api';
 import { api } from '../../services/api';
 import { OperationalStatusBadge } from '../common/StatusBadge';
@@ -21,7 +21,11 @@ interface AgentCommandCenterViewProps {
 interface AgentTelemetryModal {
   name: string;
   role: string;
-  status: 'COMPLETED' | 'RUNNING' | 'FAILED' | 'REJECTED' | 'WAITING' | 'SKIPPED' | 'ESCALATED';
+  status: 'COMPLETED' | 'RUNNING' | 'FAILED' | 'REJECTED' | 'WAITING' | 'SKIPPED' | 'ESCALATED' | 'BLOCKED' | 'NOT_EXECUTED' | 'HUMAN_REVIEW';
+  startTime?: string;
+  endTime?: string;
+  durationMs?: number;
+  correlationId?: string;
   inputs: Record<string, any>;
   outputs: Record<string, any>;
   decision: string;
@@ -36,6 +40,7 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
   const [activeIncident, setActiveIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [executing, setExecuting] = useState<boolean>(false);
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
   const [selectedAgent, setSelectedAgent] = useState<AgentTelemetryModal | null>(null);
 
   const loadIncidents = async () => {
@@ -50,15 +55,15 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
     }
   };
 
-  const loadActiveIncident = async (id: string) => {
-    setLoading(true);
+  const loadActiveIncident = async (id: string, background = false) => {
+    if (!background) setLoading(true);
     try {
       const data = await api.getIncident(id);
       setActiveIncident(data);
     } catch {
       // Ignore
     } finally {
-      setLoading(false);
+      if (!background) setLoading(false);
     }
   };
 
@@ -72,12 +77,22 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
     }
   }, [incidentId]);
 
+  // Live Auto-Refresh polling
+  useEffect(() => {
+    if (!autoRefresh || !incidentId) return;
+    const interval = setInterval(() => {
+      loadActiveIncident(incidentId, true);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, incidentId]);
+
   const handleExecuteWorkflow = async () => {
     if (!activeIncident) return;
     setExecuting(true);
     try {
       await api.runWorkflow(activeIncident.incident_id);
       await loadActiveIncident(activeIncident.incident_id);
+      await loadIncidents();
     } catch {
       // Ignore
     } finally {
@@ -85,32 +100,57 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
     }
   };
 
-  // Determine node states based on actual incident outputs
+  // Helper to query agent traces
+  const findTrace = (pattern: string) =>
+    activeIncident?.agent_traces?.find((t) =>
+      t.agent_name.toLowerCase().includes(pattern.toLowerCase())
+    );
+
+  const intelTrace = findTrace('incident');
+  const geoTrace = findTrace('geo');
+  const prioTrace = findTrace('priority');
+  const planTrace = findTrace('plan');
+  const criticTrace = findTrace('critic');
+  const simTrace = findTrace('simulat');
+  const recTrace = findTrace('recovery');
+  const verifTrace = findTrace('verif') || findTrace('closure');
+
+  const isEscalated =
+    activeIncident?.operational_status === 'ESCALATED' ||
+    activeIncident?.operational_status === 'AWAITING_HUMAN_REVIEW';
   const hasIntel = Boolean(activeIncident?.extracted_facts || activeIncident?.evidence_analysis);
   const hasGeo = Boolean(activeIncident?.geo_context);
   const hasPriority = Boolean(activeIncident?.priority);
   const hasPlan = Boolean(activeIncident?.current_plan);
   const hasCritic = Boolean(activeIncident?.validation);
-  const isRecovering = activeIncident?.operational_status === 'RECOVERING' || (activeIncident?.retry_count || 0) > 0;
-  const isSimDone = activeIncident?.operational_status === 'SIMULATED_RESOLVED';
+  const isRecovering =
+    activeIncident?.operational_status === 'RECOVERING' || (activeIncident?.retry_count || 0) > 0;
+  const isSimDone =
+    activeIncident?.operational_status === 'SIMULATED_RESOLVED' ||
+    Boolean(activeIncident?.simulation_result) ||
+    simTrace?.status === 'COMPLETED';
   const isClosureBlocked = activeIncident?.operational_status === 'CLOSURE_BLOCKED';
-  const isEscalated = activeIncident?.operational_status === 'ESCALATED';
 
   // React Flow Nodes
   const nodes: Node[] = [
+    // 1. Incident Intelligence
     {
       id: 'intake',
-      position: { x: 50, y: 150 },
+      position: { x: 40, y: 150 },
       data: {
         label: (
           <div className="p-3 text-left">
             <div className="text-[10px] font-mono text-teal-400 font-bold uppercase">Multimodal Gateway</div>
             <div className="text-xs font-bold text-white">1. Incident Intelligence</div>
-            <div className="text-[10px] text-slate-400 mt-1">Photo Sanitizer & Groq Vision</div>
+            <div className="text-[10px] text-slate-400 mt-1">Sanitization, Vision & NLP</div>
             <div className="mt-2 flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${hasIntel ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  hasIntel ? 'bg-emerald-400' : isEscalated ? 'bg-rose-500' : 'bg-slate-500'
+                }`}
+              />
               <span className="text-[10px] font-mono text-slate-300">
-                {hasIntel ? 'Completed' : 'Ready'}
+                {hasIntel ? 'Completed' : isEscalated ? 'Escalated' : 'Ready'}
               </span>
             </div>
           </div>
@@ -118,27 +158,35 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
       },
       style: {
         background: '#090d16',
-        borderColor: hasIntel ? '#2dd4bf' : '#334155',
+        borderColor: hasIntel ? '#2dd4bf' : isEscalated ? '#f43f5e' : '#334155',
         borderRadius: '12px',
         borderWidth: '1.5px',
-        width: 200,
+        width: 190,
       },
       sourcePosition: Position.Right,
     },
-    // Branch A: GeoCivic
+    // 2. Branch A: GeoCivic
     {
       id: 'geocivic',
-      position: { x: 310, y: 70 },
+      position: { x: 280, y: 60 },
       data: {
         label: (
           <div className="p-3 text-left">
             <div className="text-[10px] font-mono text-teal-400 font-bold uppercase">Branch A (Parallel)</div>
-            <div className="text-xs font-bold text-white">2. GeoCivic Agent</div>
-            <div className="text-[10px] text-slate-400 mt-1">Haversine Distance & Dup Radar</div>
+            <div className="text-xs font-bold text-white">2. Geo-Spatial Intel</div>
+            <div className="text-[10px] text-slate-400 mt-1">Haversine & Dup Radar</div>
             <div className="mt-2 flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${hasGeo ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  hasGeo
+                    ? 'bg-emerald-400'
+                    : isEscalated
+                    ? 'bg-slate-600'
+                    : 'bg-slate-500'
+                }`}
+              />
               <span className="text-[10px] font-mono text-slate-300">
-                {hasGeo ? 'Completed' : 'Waiting'}
+                {hasGeo ? 'Completed' : isEscalated ? 'Bypassed' : 'Waiting'}
               </span>
             </div>
           </div>
@@ -149,25 +197,33 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
         borderColor: hasGeo ? '#2dd4bf' : '#334155',
         borderRadius: '12px',
         borderWidth: '1.5px',
-        width: 190,
+        width: 185,
       },
       targetPosition: Position.Left,
       sourcePosition: Position.Right,
     },
-    // Branch B: Priority Intelligence
+    // 3. Branch B: Priority Intelligence
     {
       id: 'priority',
-      position: { x: 310, y: 230 },
+      position: { x: 280, y: 240 },
       data: {
         label: (
           <div className="p-3 text-left">
             <div className="text-[10px] font-mono text-teal-400 font-bold uppercase">Branch B (Parallel)</div>
-            <div className="text-xs font-bold text-white">3. Priority Intelligence</div>
-            <div className="text-[10px] text-slate-400 mt-1">Hazard & Exposure Scoring</div>
+            <div className="text-xs font-bold text-white">3. Risk & Priority</div>
+            <div className="text-[10px] text-slate-400 mt-1">Explainable 0-100 Score</div>
             <div className="mt-2 flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${hasPriority ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  hasPriority
+                    ? 'bg-emerald-400'
+                    : isEscalated
+                    ? 'bg-rose-500'
+                    : 'bg-slate-500'
+                }`}
+              />
               <span className="text-[10px] font-mono text-slate-300">
-                {hasPriority ? 'Completed' : 'Waiting'}
+                {hasPriority ? `${activeIncident?.priority?.priority_score}/100` : isEscalated ? 'Escalated' : 'Waiting'}
               </span>
             </div>
           </div>
@@ -175,28 +231,36 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
       },
       style: {
         background: '#090d16',
-        borderColor: hasPriority ? '#2dd4bf' : '#334155',
+        borderColor: hasPriority ? '#2dd4bf' : isEscalated ? '#f43f5e' : '#334155',
         borderRadius: '12px',
         borderWidth: '1.5px',
-        width: 190,
+        width: 185,
       },
       targetPosition: Position.Left,
       sourcePosition: Position.Right,
     },
-    // Join: Resolution Planning
+    // 4. Branch Join: Response Planning
     {
       id: 'planning',
-      position: { x: 560, y: 150 },
+      position: { x: 515, y: 150 },
       data: {
         label: (
           <div className="p-3 text-left">
             <div className="text-[10px] font-mono text-teal-400 font-bold uppercase">Branch Join</div>
-            <div className="text-xs font-bold text-white">4. Resolution Planning</div>
-            <div className="text-[10px] text-slate-400 mt-1">Mitigation & Resource Allocation</div>
+            <div className="text-xs font-bold text-white">4. Response Planning</div>
+            <div className="text-[10px] text-slate-400 mt-1">Relief & Permanent Plans</div>
             <div className="mt-2 flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${hasPlan ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  hasPlan
+                    ? 'bg-emerald-400'
+                    : isEscalated
+                    ? 'bg-rose-500'
+                    : 'bg-slate-500'
+                }`}
+              />
               <span className="text-[10px] font-mono text-slate-300">
-                {hasPlan ? 'Plan Formulated' : 'Waiting'}
+                {hasPlan ? 'Plan Formulated' : isEscalated ? 'Bypassed' : 'Waiting'}
               </span>
             </div>
           </div>
@@ -207,21 +271,21 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
         borderColor: hasPlan ? '#2dd4bf' : '#334155',
         borderRadius: '12px',
         borderWidth: '1.5px',
-        width: 200,
+        width: 195,
       },
       targetPosition: Position.Left,
       sourcePosition: Position.Right,
     },
-    // Critic & Verification Gate
+    // 5. Critic & Validation Gate
     {
       id: 'critic',
-      position: { x: 810, y: 150 },
+      position: { x: 760, y: 150 },
       data: {
         label: (
           <div className="p-3 text-left">
-            <div className="text-[10px] font-mono text-amber-400 font-bold uppercase">Safety & Feasibility Gate</div>
-            <div className="text-xs font-bold text-white">5. Critic & Verification</div>
-            <div className="text-[10px] text-slate-400 mt-1">Safety Constraints (Max 2 Retries)</div>
+            <div className="text-[10px] font-mono text-amber-400 font-bold uppercase">Safety Pre-Check</div>
+            <div className="text-xs font-bold text-white">5. Critic Validator</div>
+            <div className="text-[10px] text-slate-400 mt-1">Safety & Feasibility</div>
             <div className="mt-2 flex items-center gap-1.5">
               <span
                 className={`w-2 h-2 rounded-full ${
@@ -244,21 +308,58 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
         borderColor: hasCritic ? '#f59e0b' : '#334155',
         borderRadius: '12px',
         borderWidth: '1.5px',
-        width: 200,
+        width: 185,
       },
       targetPosition: Position.Left,
       sourcePosition: Position.Right,
     },
-    // Adaptive Recovery Agent
+    // 6. Deterministic Simulator
     {
-      id: 'recovery',
-      position: { x: 810, y: 310 },
+      id: 'simulator',
+      position: { x: 995, y: 150 },
       data: {
         label: (
           <div className="p-3 text-left">
-            <div className="text-[10px] font-mono text-amber-400 font-bold uppercase">Failure Recovery Loop</div>
+            <div className="text-[10px] font-mono text-indigo-400 font-bold uppercase">Deterministic Sandbox</div>
+            <div className="text-xs font-bold text-white">Execution Simulator</div>
+            <div className="text-[10px] text-slate-400 mt-1">simulated=True Intervention</div>
+            <div className="mt-2 flex items-center gap-1.5">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isSimDone
+                    ? 'bg-emerald-400'
+                    : isRecovering
+                    ? 'bg-amber-400'
+                    : 'bg-slate-500'
+                }`}
+              />
+              <span className="text-[10px] font-mono text-slate-300">
+                {isSimDone ? 'Simulated' : isRecovering ? 'Obstacle Detected' : 'Waiting'}
+              </span>
+            </div>
+          </div>
+        ),
+      },
+      style: {
+        background: '#090d16',
+        borderColor: isSimDone ? '#818cf8' : isRecovering ? '#f59e0b' : '#334155',
+        borderRadius: '12px',
+        borderWidth: '1.5px',
+        width: 190,
+      },
+      targetPosition: Position.Left,
+      sourcePosition: Position.Right,
+    },
+    // 7. Adaptive Recovery Agent
+    {
+      id: 'recovery',
+      position: { x: 880, y: 310 },
+      data: {
+        label: (
+          <div className="p-3 text-left">
+            <div className="text-[10px] font-mono text-amber-400 font-bold uppercase">Adaptive Loop</div>
             <div className="text-xs font-bold text-white">6. Adaptive Recovery</div>
-            <div className="text-[10px] text-slate-400 mt-1">Resource / Crew Substitution</div>
+            <div className="text-[10px] text-slate-400 mt-1">Crew/Material Replanning</div>
             <div className="mt-2 flex items-center gap-1.5">
               <span
                 className={`w-2 h-2 rounded-full ${
@@ -266,7 +367,7 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
                 }`}
               />
               <span className="text-[10px] font-mono text-slate-300">
-                {isRecovering ? 'Plan Revised' : 'Idle'}
+                {isRecovering ? `Retry ${activeIncident?.retry_count || 1}/2` : 'Idle'}
               </span>
             </div>
           </div>
@@ -277,25 +378,25 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
         borderColor: isRecovering ? '#f59e0b' : '#334155',
         borderRadius: '12px',
         borderWidth: '1.5px',
-        width: 200,
+        width: 195,
       },
       targetPosition: Position.Top,
       sourcePosition: Position.Left,
     },
-    // Closure Verification Gate
+    // 8. Independent Verification Agent (Closure Gate)
     {
       id: 'closure',
-      position: { x: 1060, y: 150 },
+      position: { x: 1235, y: 150 },
       data: {
         label: (
           <div className="p-3 text-left">
-            <div className="text-[10px] font-mono text-emerald-400 font-bold uppercase">Deterministic Gate</div>
-            <div className="text-xs font-bold text-white">Closure Verification</div>
-            <div className="text-[10px] text-slate-400 mt-1">Requires Synthetic Proof</div>
+            <div className="text-[10px] font-mono text-emerald-400 font-bold uppercase">Invariant 1 Gate</div>
+            <div className="text-xs font-bold text-white">7. Verification Agent</div>
+            <div className="text-[10px] text-slate-400 mt-1">Evidence & Closure Gate</div>
             <div className="mt-2 flex items-center gap-1.5">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  isSimDone
+                  activeIncident?.operational_status === 'SIMULATED_RESOLVED'
                     ? 'bg-emerald-400'
                     : isClosureBlocked
                     ? 'bg-rose-500'
@@ -305,7 +406,13 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
                 }`}
               />
               <span className="text-[10px] font-mono text-slate-300">
-                {isSimDone ? 'Simulated Resolved' : isClosureBlocked ? 'Closure Blocked' : 'Waiting'}
+                {activeIncident?.operational_status === 'SIMULATED_RESOLVED'
+                  ? 'Simulated Resolved'
+                  : isClosureBlocked
+                  ? 'Closure Blocked'
+                  : isEscalated
+                  ? 'Human Review'
+                  : 'Waiting'}
               </span>
             </div>
           </div>
@@ -313,7 +420,14 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
       },
       style: {
         background: '#090d16',
-        borderColor: isSimDone ? '#10b981' : isClosureBlocked ? '#f43f5e' : '#334155',
+        borderColor:
+          activeIncident?.operational_status === 'SIMULATED_RESOLVED'
+            ? '#10b981'
+            : isClosureBlocked
+            ? '#f43f5e'
+            : isEscalated
+            ? '#f43f5e'
+            : '#334155',
         borderRadius: '12px',
         borderWidth: '1.5px',
         width: 190,
@@ -365,16 +479,38 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
       markerEnd: { type: MarkerType.ArrowClosed, color: hasCritic ? '#f59e0b' : '#475569' },
     },
     {
-      id: 'e-critic-closure',
+      id: 'e-critic-sim',
       source: 'critic',
-      target: 'closure',
+      target: 'simulator',
       animated: isSimDone,
-      style: { stroke: isSimDone ? '#10b981' : '#475569', strokeWidth: 2 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: isSimDone ? '#10b981' : '#475569' },
+      style: { stroke: isSimDone ? '#818cf8' : '#475569', strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: isSimDone ? '#818cf8' : '#475569' },
+    },
+    {
+      id: 'e-sim-closure',
+      source: 'simulator',
+      target: 'closure',
+      animated: activeIncident?.operational_status === 'SIMULATED_RESOLVED',
+      style: {
+        stroke: activeIncident?.operational_status === 'SIMULATED_RESOLVED' ? '#10b981' : '#475569',
+        strokeWidth: 2,
+      },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: activeIncident?.operational_status === 'SIMULATED_RESOLVED' ? '#10b981' : '#475569',
+      },
     },
     {
       id: 'e-critic-recovery',
       source: 'critic',
+      target: 'recovery',
+      animated: isRecovering,
+      style: { stroke: isRecovering ? '#f59e0b' : '#334155', strokeDasharray: '4', strokeWidth: 1.5 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: isRecovering ? '#f59e0b' : '#334155' },
+    },
+    {
+      id: 'e-sim-recovery',
+      source: 'simulator',
       target: 'recovery',
       animated: isRecovering,
       style: { stroke: isRecovering ? '#f59e0b' : '#334155', strokeDasharray: '4', strokeWidth: 1.5 },
@@ -397,8 +533,10 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
     if (node.id === 'intake') {
       setSelectedAgent({
         name: 'Incident Intelligence Agent',
-        role: 'Multimodal vision and complaint fact extraction with EXIF sanitation.',
-        status: hasIntel ? 'COMPLETED' : 'WAITING',
+        role: 'Multimodal vision and complaint fact extraction with EXIF sanitization.',
+        status: hasIntel ? 'COMPLETED' : isEscalated ? 'HUMAN_REVIEW' : 'WAITING',
+        startTime: intelTrace?.start_time,
+        endTime: intelTrace?.end_time,
         inputs: {
           complaint: activeIncident.complaint,
           category: activeIncident.category,
@@ -414,19 +552,23 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
       });
     } else if (node.id === 'geocivic') {
       setSelectedAgent({
-        name: 'GeoCivic Agent',
+        name: 'Geo-Spatial Intelligence Agent',
         role: 'Geospatial duplicate detection using Haversine formula against municipal registry.',
-        status: hasGeo ? 'COMPLETED' : 'WAITING',
+        status: hasGeo ? 'COMPLETED' : isEscalated ? 'BLOCKED' : 'WAITING',
+        startTime: geoTrace?.start_time,
+        endTime: geoTrace?.end_time,
         inputs: { location: activeIncident.location },
         outputs: { geo_context: activeIncident.geo_context },
-        decision: activeIncident.geo_context?.is_duplicate ? 'Potential Duplicate Flagged' : 'Unique Incident Confirmed',
+        decision: activeIncident.geo_context?.is_duplicate ? 'Potential Duplicate Flagged (UNCONFIRMED)' : 'Unique Civic Incident Confirmed',
         events: activeIncident.audit_timeline.filter((e) => e.agent.includes('GeoCivic')),
       });
     } else if (node.id === 'priority') {
       setSelectedAgent({
-        name: 'Priority Intelligence Agent',
-        role: 'Hazard severity and public exposure evaluation (0-100 score).',
-        status: hasPriority ? 'COMPLETED' : 'WAITING',
+        name: 'Risk & Priority Intelligence Agent',
+        role: 'Explainable hazard severity, public exposure, and mandatory escalation evaluation.',
+        status: hasPriority ? 'COMPLETED' : isEscalated ? 'ESCALATED' : 'WAITING',
+        startTime: prioTrace?.start_time,
+        endTime: prioTrace?.end_time,
         inputs: {
           category: activeIncident.category,
           severity_indicators: activeIncident.extracted_facts?.severity_indicators,
@@ -437,45 +579,71 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
       });
     } else if (node.id === 'planning') {
       setSelectedAgent({
-        name: 'Resolution Planning Agent',
-        role: 'Formulates domain remediation plan, resource allocation, and closure criteria.',
-        status: hasPlan ? 'COMPLETED' : 'WAITING',
+        name: 'Response Planning Agent',
+        role: 'Formulates dual temporary-relief and permanent-resolution plans with closure criteria.',
+        status: hasPlan ? 'COMPLETED' : isEscalated ? 'BLOCKED' : 'WAITING',
+        startTime: planTrace?.start_time,
+        endTime: planTrace?.end_time,
         inputs: {
           geo_context: activeIncident.geo_context,
           priority: activeIncident.priority,
         },
         outputs: { current_plan: activeIncident.current_plan },
-        decision: activeIncident.current_plan?.is_revised ? 'Adaptive Plan Revision Applied' : 'Standard Remediation Plan Formulated',
+        decision: activeIncident.current_plan?.is_revised ? 'Adaptive Plan Revision Applied' : 'Standard Dual Remediation Plan Formulated',
         events: activeIncident.audit_timeline.filter((e) => e.agent.includes('Resolution') || e.agent.includes('Planning')),
       });
     } else if (node.id === 'critic') {
       setSelectedAgent({
-        name: 'Critic and Verification Agent',
-        role: 'Validates safety constraints and resource availability with bounded retries.',
-        status: activeIncident.validation?.status === 'APPROVE' ? 'COMPLETED' : activeIncident.validation ? 'REJECTED' : 'WAITING',
+        name: 'Critic Validation Agent',
+        role: 'Validates safety constraints, resource limits, and authorization before execution.',
+        status: activeIncident.validation?.status === 'APPROVE' ? 'COMPLETED' : activeIncident.validation ? 'REJECTED' : isEscalated ? 'BLOCKED' : 'WAITING',
+        startTime: criticTrace?.start_time,
+        endTime: criticTrace?.end_time,
         inputs: { plan: activeIncident.current_plan, retry_count: activeIncident.retry_count },
         outputs: { validation: activeIncident.validation },
         decision: `Critic Verdict: ${activeIncident.validation?.status || 'Pending'} — ${activeIncident.validation?.feedback || ''}`,
         events: activeIncident.audit_timeline.filter((e) => e.agent.includes('Critic')),
       });
+    } else if (node.id === 'simulator') {
+      setSelectedAgent({
+        name: 'Deterministic Execution Simulator',
+        role: 'Simulates municipal intervention deterministically (simulated=True).',
+        status: isSimDone ? 'COMPLETED' : isRecovering ? 'FAILED' : isEscalated ? 'BLOCKED' : 'WAITING',
+        startTime: simTrace?.start_time,
+        endTime: simTrace?.end_time,
+        inputs: {
+          plan: activeIncident.current_plan,
+          scenario: 'Deterministic Execution Engine',
+        },
+        outputs: {
+          simulation_result: activeIncident.simulation_result,
+          failure_reason: activeIncident.failure_reason,
+        },
+        decision: activeIncident.simulation_result ? `Simulation Result: ${activeIncident.simulation_result}` : 'Awaiting Simulation',
+        events: activeIncident.audit_timeline.filter((e) => e.agent.includes('Simulator') || e.action.includes('Simulation')),
+      });
     } else if (node.id === 'recovery') {
       setSelectedAgent({
         name: 'Adaptive Recovery Agent',
-        role: 'Revises remediation plans when simulated obstacles (crew/materials shortage) occur.',
+        role: 'Bounded replanning (max 2 retries) upon obstacle detection (crew/materials shortage).',
         status: isRecovering ? 'COMPLETED' : 'WAITING',
+        startTime: recTrace?.start_time,
+        endTime: recTrace?.end_time,
         inputs: {
           failure_reason: activeIncident.failure_reason,
           retry_count: activeIncident.retry_count,
         },
         outputs: { current_plan: activeIncident.current_plan },
-        decision: activeIncident.failure_reason ? `Handled Obstacle: ${activeIncident.failure_reason}` : 'No recovery required.',
+        decision: activeIncident.failure_reason ? `Handled Obstacle: ${activeIncident.failure_reason} (Attempt ${activeIncident.retry_count}/2)` : 'No recovery required.',
         events: activeIncident.audit_timeline.filter((e) => e.agent.includes('Recovery') || e.action.includes('Recovery')),
       });
     } else if (node.id === 'closure') {
       setSelectedAgent({
-        name: 'Deterministic Closure Verification Gate',
-        role: 'Ensures no incident is marked resolved without explicit synthetic completion evidence.',
-        status: isSimDone ? 'COMPLETED' : isClosureBlocked ? 'FAILED' : 'WAITING',
+        name: 'Independent Verification Agent',
+        role: 'Invariant 1 Gate: Evaluates completion criteria and synthetic evidence before verified closure.',
+        status: activeIncident.operational_status === 'SIMULATED_RESOLVED' ? 'COMPLETED' : isClosureBlocked ? 'FAILED' : isEscalated ? 'HUMAN_REVIEW' : 'WAITING',
+        startTime: verifTrace?.start_time,
+        endTime: verifTrace?.end_time,
         inputs: {
           closure_evidence: activeIncident.closure_evidence,
           simulation_result: activeIncident.simulation_result,
@@ -484,8 +652,15 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
           closure_evidence: activeIncident.closure_evidence,
           operational_status: activeIncident.operational_status,
         },
-        decision: isSimDone ? 'SIMULATED_RESOLVED [Explicit Simulation Marker]' : isClosureBlocked ? 'CLOSURE_BLOCKED: Evidence Incomplete' : 'Awaiting Gate Execution',
-        events: activeIncident.audit_timeline.filter((e) => e.agent.includes('Closure')),
+        decision:
+          activeIncident.operational_status === 'SIMULATED_RESOLVED'
+            ? 'SIMULATED_RESOLVED: All measurable closure criteria verified.'
+            : isClosureBlocked
+            ? 'CLOSURE_BLOCKED: Evidence missing or criteria unmet.'
+            : isEscalated
+            ? 'HUMAN_REVIEW: Mandatory escalation routed to municipal supervisor.'
+            : 'Awaiting Gate Execution',
+        events: activeIncident.audit_timeline.filter((e) => e.agent.includes('Closure') || e.agent.includes('Verification')),
       });
     }
   };
@@ -499,11 +674,25 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
             Multi-Agent Orchestration Mesh
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Real-time execution telemetry of the 6 specialist agents and deterministic workflow gates. Click any node to inspect telemetry.
+            Real-time execution telemetry of all 6 specialist agents, Critic safety gate, and deterministic simulator. Click any node to inspect telemetry.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Live Polling Toggle */}
+          <button
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium rounded-lg border transition-all ${
+              autoRefresh
+                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+                : 'border-slate-700 bg-slate-900 text-slate-400'
+            }`}
+            title="Auto-refresh telemetry every 3 seconds"
+          >
+            <Radio className={`w-3.5 h-3.5 ${autoRefresh ? 'animate-pulse text-emerald-400' : 'text-slate-500'}`} />
+            {autoRefresh ? 'Live Polling Active' : 'Polling Paused'}
+          </button>
+
           <select
             value={incidentId || ''}
             onChange={(e) => onSelectIncident(e.target.value)}
@@ -521,10 +710,11 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
             <button
               onClick={handleExecuteWorkflow}
               disabled={executing}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-teal-600 hover:bg-teal-500 text-white shadow-sm transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 shadow-sm transition-all disabled:opacity-50"
+              title="Manual re-dispatch (Routine incidents execute automatically on submission)"
             >
-              <Play className={`w-3.5 h-3.5 fill-current ${executing ? 'animate-spin' : ''}`} />
-              {executing ? 'Running Mesh...' : 'Dispatch Mesh'}
+              <RefreshCw className={`w-3.5 h-3.5 ${executing ? 'animate-spin text-teal-400' : ''}`} />
+              {executing ? 'Running Mesh...' : 'Re-Dispatch (Diagnostics)'}
             </button>
           )}
         </div>
@@ -532,20 +722,31 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
 
       {/* Case Status Pill */}
       {activeIncident && (
-        <div className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900/60 font-mono text-xs">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 font-mono text-xs gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="font-bold text-teal-400">{activeIncident.incident_id}</span>
-            <span className="text-slate-400">Status:</span>
+            <span className="text-slate-500">Status:</span>
             <OperationalStatusBadge status={activeIncident.operational_status} size="sm" />
+            {activeIncident.retry_count > 0 && (
+              <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                Replanning Iteration: {activeIncident.retry_count}/2
+              </span>
+            )}
+            {activeIncident.operational_status === 'AWAITING_HUMAN_REVIEW' && (
+              <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                <ShieldAlert className="w-3 h-3" />
+                Human Review Escalated
+              </span>
+            )}
           </div>
-          <div className="text-[11px] text-slate-500">
-            Click on any agent node below to inspect real input and output state.
+          <div className="text-[11px] text-slate-400">
+            Workflows execute autonomously upon citizen submission. Click any node below to inspect live trace.
           </div>
         </div>
       )}
 
       {/* React Flow Container */}
-      <div className="w-full h-[540px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden relative shadow-2xl">
+      <div className="w-full h-[560px] rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden relative shadow-2xl">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -570,8 +771,12 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
             <span>Critic Rejection / Recovery</span>
           </div>
           <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-rose-500" />
+            <span>Human Review / Escalated</span>
+          </div>
+          <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-slate-500" />
-            <span>Awaiting Upstream Branch</span>
+            <span>Awaiting Upstream Stage</span>
           </div>
         </div>
       </div>
@@ -584,6 +789,14 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
               <div>
                 <h3 className="text-base font-bold text-white tracking-tight">{selectedAgent.name}</h3>
                 <p className="text-xs text-slate-400 mt-0.5">{selectedAgent.role}</p>
+                {selectedAgent.startTime && (
+                  <div className="flex items-center gap-2 mt-2 text-[10px] font-mono text-slate-500">
+                    <Clock className="w-3 h-3 text-teal-400" />
+                    <span>
+                      {new Date(selectedAgent.startTime).toLocaleTimeString()} → {selectedAgent.endTime ? new Date(selectedAgent.endTime).toLocaleTimeString() : 'In Progress'}
+                    </span>
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => setSelectedAgent(null)}
@@ -596,7 +809,7 @@ export const AgentCommandCenterView: React.FC<AgentCommandCenterViewProps> = ({
             <div className="space-y-4 text-xs">
               <div>
                 <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">Execution Decision</span>
-                <p className="text-teal-300 font-semibold mt-1 p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+                <p className="text-teal-300 font-semibold mt-1 p-2.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs">
                   {selectedAgent.decision}
                 </p>
               </div>

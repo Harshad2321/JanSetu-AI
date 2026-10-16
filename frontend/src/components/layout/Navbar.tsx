@@ -2,15 +2,12 @@ import React, { useState } from 'react';
 import {
   Activity,
   AlertTriangle,
-  Code2,
   Cpu,
-  Database,
   Layers,
   MapPin,
   Menu,
   PlayCircle,
   Search,
-  Sliders,
   X,
 } from 'lucide-react';
 import type { HealthResponse } from '../../types/api';
@@ -22,10 +19,7 @@ export type ActiveTab =
   | 'workspace'
   | 'command-center'
   | 'simulation-lab'
-  | 'ml-lab'
-  | 'audit'
-  | 'architecture'
-  | 'health';
+  | 'ml-lab';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -50,9 +44,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'command-center', label: 'Agent Operations', icon: <Activity className="w-3.5 h-3.5" /> },
     { id: 'simulation-lab', label: 'Simulation Lab', icon: <PlayCircle className="w-3.5 h-3.5" /> },
     { id: 'ml-lab', label: 'ML Model Lab', icon: <Cpu className="w-3.5 h-3.5" /> },
-    { id: 'audit', label: 'Learning & Audit', icon: <Database className="w-3.5 h-3.5" /> },
-    { id: 'architecture', label: 'Architecture', icon: <Code2 className="w-3.5 h-3.5" /> },
-    { id: 'health', label: 'Diagnostics', icon: <Sliders className="w-3.5 h-3.5" /> },
   ];
 
   const isHealthy = health?.status === 'healthy';

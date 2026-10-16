@@ -88,12 +88,15 @@ export const api = {
 
   async runWorkflow(
     incidentId: string,
-    options?: { simulation_scenario?: string; failure_reason?: string }
+    options?: { simulation_scenario?: string; failure_reason?: string; allow_unverified_triage?: boolean }
   ): Promise<WorkflowRunResponse> {
     const res = await fetch(`${API_BASE_URL}/api/v1/incidents/${incidentId}/run`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(options || {}),
+      body: JSON.stringify({
+        allow_unverified_triage: true,
+        ...(options || {}),
+      }),
     });
     return handleResponse<WorkflowRunResponse>(res);
   },

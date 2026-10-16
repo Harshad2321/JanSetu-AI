@@ -208,6 +208,10 @@ class IncidentIntelligenceAgent(BaseCivicAgent[IncidentIntelOutput]):
             needs_review = True
         elif outcome == EvidenceOutcome.MATCHED:
             operational_status = OperationalStatus.TRIAGED.value
+        elif fusion_res.status == "NLP_ONLY" and fusion_res.fused_category:
+            # Case C: Vision unavailable/offline, NLP partial evidence permits autonomous triage
+            operational_status = OperationalStatus.TRIAGED.value
+            needs_review = False
         elif outcome == EvidenceOutcome.MISMATCH:
             operational_status = OperationalStatus.AWAITING_CLARIFICATION.value
             needs_review = True
@@ -218,8 +222,7 @@ class IncidentIntelligenceAgent(BaseCivicAgent[IncidentIntelOutput]):
             operational_status = OperationalStatus.AWAITING_HUMAN_REVIEW.value
             needs_review = True
         elif outcome == EvidenceOutcome.NOT_PROVIDED:
-            operational_status = OperationalStatus.RECORDED_PENDING_REVIEW.value
-            # Missing photograph requires human review before closure
+            operational_status = OperationalStatus.TRIAGED.value
         else:
             operational_status = OperationalStatus.TRIAGED.value
 

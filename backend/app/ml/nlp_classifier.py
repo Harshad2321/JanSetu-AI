@@ -280,6 +280,17 @@ def main() -> None:
         )
         print(f"[SUCCESS] Trained on {len(X_train)} samples. Saved to: {art_file}")
 
+        try:
+            from app.ml.evaluation import run_full_evaluation
+            print("Evaluating NLP classifier on held-out test and challenge sets...")
+            report = run_full_evaluation(
+                train_data_path=data_file,
+                artifact_path=art_file,
+            )
+            print(f"[SUCCESS] Evaluation complete. Test Accuracy: {report['test_partition_metrics']['accuracy']*100:.1f}%, Challenge Accuracy: {report['challenge_set_metrics']['accuracy']*100:.1f}%")
+        except Exception as eval_exc:
+            print(f"[WARNING] Could not auto-generate evaluation report: {eval_exc}")
+
     if args.predict:
         classifier = CivicNLPClassifier(artifact_path=art_file)
         res = classifier.predict(args.predict)

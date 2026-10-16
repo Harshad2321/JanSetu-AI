@@ -32,8 +32,8 @@ mandatory_escalation_rules:
     description: "Complete blockage of hospital access, ambulance route, or primary emergency corridor"
     keywords: ["hospital blocked", "ambulance blocked", "hospital gate", "emergency corridor", "fire station route"]
   - id: "E03_ACCIDENT_OCCURRED"
-    description: "Physical injury or vehicular collision reported due to defect"
-    keywords: ["accident", "injury", "injured", "toppled", "tripped yesterday", "broken leg", "casualty"]
+    description: "Active vehicular collision, severe bodily trauma, or acute life-safety emergency occurring at site"
+    keywords: ["active collision", "active crash", "collision right now", "crash right now", "head-on collision", "vehicle crashed right now", "trapped in vehicle", "driver trapped", "trapped", "severe head injury", "unconscious casualty", "bleeding heavily", "multiple casualties", "fatal collision", "critical injury right now"]
   - id: "E04_VULNERABLE_POPULATION"
     description: "Hazard directly obstructing primary school, childcare facility, or elderly care center"
     keywords: ["primary school", "children walking", "school entrance", "maternity ward", "elderly home"]

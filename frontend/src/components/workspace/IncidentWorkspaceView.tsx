@@ -75,6 +75,23 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
     }
   }, [incidentId]);
 
+  // Background auto-refresh polling every 3.5s
+  useEffect(() => {
+    if (!incidentId) return;
+    const interval = setInterval(() => {
+      Promise.all([
+        api.getIncident(incidentId),
+        api.getIncidentTwin(incidentId).catch(() => null),
+      ])
+        .then(([data, twinData]) => {
+          setIncident(data);
+          if (twinData) setTwin(twinData);
+        })
+        .catch(() => {});
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [incidentId]);
+
   const handleRunWorkflow = async () => {
     if (!incident) return;
     setExecuting(true);
@@ -98,7 +115,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
     setScenarioNotice(null);
     try {
       const res: WorkflowRunResponse = await api.simulateScenario(incident.incident_id, selectedScenario);
-      setScenarioNotice(`Scenario '${selectedScenario}' executed. Operational Status: ${res.operational_status}.`);
+      setScenarioNotice(`Simulation scenario '${selectedScenario}' executed. Operational Status: ${res.operational_status}.`);
       await loadIncident(incident.incident_id);
     } catch (err: any) {
       setError(`Scenario execution failed: ${err.message}`);
@@ -109,6 +126,19 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Autonomous Orchestration Notice */}
+      <div className="p-3.5 rounded-xl border border-teal-500/30 bg-teal-500/10 text-teal-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-teal-400 shrink-0" />
+          <span>
+            <strong>Autonomous Multi-Agent Pipeline Active:</strong> Citizen reports automatically trigger Incident Intelligence, GeoCivic duplicate checks, Priority scoring, Response planning, Critic gate, Deterministic simulation, and Closure verification.
+          </span>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 shrink-0">
+          Zero-Click Automation
+        </span>
+      </div>
+
       {/* Top Selector & Controls Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm">
         <div className="flex flex-wrap items-center gap-3">
@@ -145,18 +175,20 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
               View Agent Telemetry
             </button>
 
-            {/* Run Workflow button */}
+            {/* Diagnostics re-run button */}
             <button
               onClick={handleRunWorkflow}
               disabled={executing}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-teal-600 hover:bg-teal-500 text-white shadow-md shadow-teal-500/20 transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all disabled:opacity-50"
+              title="Re-run pipeline for diagnostic testing"
             >
-              <Play className={`w-3.5 h-3.5 fill-current ${executing ? 'animate-spin' : ''}`} />
-              {executing ? 'Running Workflow...' : 'Execute Workflow'}
+              <Play className={`w-3.5 h-3.5 fill-current ${executing ? 'animate-spin text-teal-400' : ''}`} />
+              {executing ? 'Executing...' : 'Re-run (Diagnostics)'}
             </button>
 
-            {/* Scenario Quick Selector */}
-            <div className="flex items-center gap-1 border border-slate-700 rounded-lg bg-slate-950 p-0.5">
+            {/* Scenario Quick Selector (Simulation Lab Testing) */}
+            <div className="flex items-center gap-1 border border-slate-700 rounded-lg bg-slate-950 p-0.5" title="Simulation Lab Scenario Injector">
+              <span className="text-[10px] font-mono text-amber-400 pl-1.5 hidden sm:inline">Lab:</span>
               <select
                 value={selectedScenario}
                 onChange={(e) => setSelectedScenario(e.target.value as SupportedScenario)}
@@ -287,7 +319,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                   <div>
                     <span className="text-slate-500 font-mono">Severity Indicators:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {incident.extracted_facts.severity_indicators.map((s, idx) => (
+                      {(incident.extracted_facts.severity_indicators || []).map((s, idx) => (
                         <span key={idx} className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/30 text-[11px]">
                           {s}
                         </span>
@@ -297,7 +329,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                   <div>
                     <span className="text-slate-500 font-mono">Public Exposure:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {incident.extracted_facts.public_exposure_clues.map((c, idx) => (
+                      {(incident.extracted_facts.public_exposure_clues || []).map((c, idx) => (
                         <span key={idx} className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 text-[11px]">
                           {c}
                         </span>
@@ -305,7 +337,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                     </div>
                   </div>
                   <div className="text-[11px] text-slate-500 pt-1 font-mono">
-                    Extraction Confidence: {(incident.extracted_facts.confidence_score * 100).toFixed(0)}%
+                    Extraction Confidence: {((incident.extracted_facts.confidence_score ?? 0.8) * 100).toFixed(0)}%
                   </div>
                 </div>
               ) : (
@@ -466,21 +498,25 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                 {/* Left: Mitigation & Permanent Repair */}
                 <div className="space-y-3">
                   <div>
-                    <span className="text-slate-400 font-semibold font-mono text-[11px]">Immediate Mitigation Steps:</span>
+                    <span className="text-slate-400 font-semibold font-mono text-[11px]">
+                      {((incident.current_plan as any).actions?.length > 0) ? "Planned Actions:" : "Immediate Mitigation Steps:"}
+                    </span>
                     <ul className="list-disc list-inside mt-1.5 space-y-1 text-slate-300">
-                      {incident.current_plan.mitigation_steps.map((m, idx) => (
+                      {(((incident.current_plan as any).actions) || (incident.current_plan as any).mitigation_steps || []).map((m: string, idx: number) => (
                         <li key={idx}>{m}</li>
                       ))}
                     </ul>
                   </div>
-                  <div>
-                    <span className="text-slate-400 font-semibold font-mono text-[11px]">Permanent Remediation:</span>
-                    <ul className="list-disc list-inside mt-1.5 space-y-1 text-slate-300">
-                      {incident.current_plan.permanent_repair_steps.map((r, idx) => (
-                        <li key={idx}>{r}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  {((incident.current_plan as any).permanent_repair_steps?.length > 0) && (
+                    <div>
+                      <span className="text-slate-400 font-semibold font-mono text-[11px]">Permanent Remediation:</span>
+                      <ul className="list-disc list-inside mt-1.5 space-y-1 text-slate-300">
+                        {((incident.current_plan as any).permanent_repair_steps || []).map((r: string, idx: number) => (
+                          <li key={idx}>{r}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right: Resources, Roles & Measurable Closure Criteria */}
@@ -488,7 +524,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                   <div>
                     <span className="text-slate-400 font-semibold font-mono text-[11px]">Allocated Resources:</span>
                     <div className="flex flex-wrap gap-1 mt-1.5">
-                      {incident.current_plan.allocated_resources.map((res, idx) => (
+                      {(((incident.current_plan as any).required_resources) || ((incident.current_plan as any).resource_requirements) || ((incident.current_plan as any).allocated_resources) || ((incident.current_plan as any).resources) || []).map((res: string, idx: number) => (
                         <span key={idx} className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] border border-slate-700">
                           {res}
                         </span>
@@ -498,7 +534,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                   <div>
                     <span className="text-slate-400 font-semibold font-mono text-[11px]">Deterministic Closure Criteria:</span>
                     <ul className="list-disc list-inside mt-1.5 space-y-1 text-slate-300">
-                      {incident.current_plan.closure_criteria.map((c, idx) => (
+                      {((incident.current_plan as any).closure_criteria || []).map((c: string, idx: number) => (
                         <li key={idx} className="text-slate-300">{c}</li>
                       ))}
                     </ul>
@@ -534,16 +570,16 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                 <div>
                   <span className="text-slate-500 font-mono text-[11px]">Criteria Verified Fulfilled:</span>
                   <ul className="list-disc list-inside mt-1 space-y-0.5 text-emerald-400">
-                    {incident.closure_evidence.closure_criteria_met.map((met, idx) => (
+                    {(incident.closure_evidence.closure_criteria_met || []).map((met, idx) => (
                       <li key={idx}>{met}</li>
                     ))}
                   </ul>
                 </div>
-                {incident.closure_evidence.outstanding_criteria.length > 0 && (
+                {(incident.closure_evidence.outstanding_criteria || []).length > 0 && (
                   <div>
                     <span className="text-slate-500 font-mono text-[11px]">Outstanding Criteria:</span>
                     <ul className="list-disc list-inside mt-1 space-y-0.5 text-rose-400">
-                      {incident.closure_evidence.outstanding_criteria.map((unmet, idx) => (
+                      {(incident.closure_evidence.outstanding_criteria || []).map((unmet, idx) => (
                         <li key={idx}>{unmet}</li>
                       ))}
                     </ul>
@@ -601,7 +637,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                         <div>
                           <span className="text-[10px] font-mono text-slate-500 block">Actions:</span>
                           <ul className="list-disc list-inside space-y-0.5 text-slate-300 text-[11px] mt-0.5">
-                            {p.actions.map((act, aIdx) => (
+                            {(p.actions || []).map((act, aIdx) => (
                               <li key={aIdx}>{act}</li>
                             ))}
                           </ul>
@@ -609,7 +645,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                         <div>
                           <span className="text-[10px] font-mono text-slate-500 block">Closure Criteria:</span>
                           <ul className="list-disc list-inside space-y-0.5 text-slate-400 text-[10px] mt-0.5">
-                            {p.closure_criteria.map((crit, cIdx) => (
+                            {(p.closure_criteria || []).map((crit, cIdx) => (
                               <li key={cIdx}>{crit}</li>
                             ))}
                           </ul>
@@ -633,7 +669,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
 
                 {twin.execution_attempts && twin.execution_attempts.length > 0 ? (
                   <div className="space-y-2">
-                    {twin.execution_attempts.map((att, idx) => (
+                    {(twin.execution_attempts || []).map((att, idx) => (
                       <div key={idx} className="p-3 rounded-lg border border-slate-800 bg-slate-950/70 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2 font-mono">
@@ -649,7 +685,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                           )}
                         </div>
                         <span className="text-[10px] font-mono text-slate-500">
-                          {new Date(att.timestamp).toLocaleTimeString()}
+                          {new Date((att as any).attempted_at || att.timestamp || Date.now()).toLocaleTimeString()}
                         </span>
                       </div>
                     ))}
@@ -670,7 +706,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
 
                 {twin.verification_results && twin.verification_results.length > 0 ? (
                   <div className="space-y-2">
-                    {twin.verification_results.map((v, idx) => (
+                    {(twin.verification_results || []).map((v, idx) => (
                       <div key={idx} className="p-3 rounded-lg border border-slate-800 bg-slate-950/70 text-xs space-y-1.5">
                         <div className="flex items-center justify-between font-mono">
                           <span className="font-bold text-teal-300">{v.verification_id}</span>

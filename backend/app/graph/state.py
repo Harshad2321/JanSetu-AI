@@ -1,5 +1,5 @@
 import operator
-from typing import TypedDict, List, Optional, Any, Annotated
+from typing import TypedDict, List, Dict, Optional, Any, Annotated
 from app.schemas.incident import (
     IncidentExtraction,
     PhotoEvidenceAnalysis,
@@ -41,6 +41,15 @@ class IncidentState(TypedDict, total=False):
     closure_evidence: Optional[ClosureEvidence]
     synthetic_closure_evidence: Optional[Any]
     verification_result: Optional[Any]
+    temporary_plan: Optional[Any]
+    permanent_plan: Optional[Any]
+    revised_plan: Optional[Any]
+    selected_plan: Optional[Any]
+    response_planning_output: Optional[Any]
+    adaptive_recovery_output: Optional[Any]
+    execution_attempt: Optional[Any]
+    execution_attempts: Annotated[List[Dict[str, Any]], operator.add]
+    model_predictions: Optional[List[Any]]
     
     # Internal state tracking
     status: str # NEW, SUBMITTED, NEEDS_CLARIFICATION, CLASSIFIED, TRIAGED, PLANNING, VALIDATING, SIMULATING, VERIFYING_CLOSURE, AWAITING_VERIFICATION, VERIFIED_CLOSED, SIMULATED_RESOLVED, CLOSURE_BLOCKED, RECOVERING, ESCALATED, HUMAN_REVIEW
