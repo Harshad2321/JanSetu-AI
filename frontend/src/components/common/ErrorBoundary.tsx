@@ -36,23 +36,23 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6 font-sans">
-          <div className="max-w-md w-full p-6 rounded-2xl border border-rose-500/40 bg-slate-900/90 shadow-2xl backdrop-blur-md space-y-5 text-center">
-            <div className="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400">
+        <div className="min-h-screen bg-[#F5F7FA] text-[#172033] flex items-center justify-center p-6 font-sans">
+          <div className="max-w-md w-full p-8 rounded-2xl border border-[#E2E8F0] bg-white shadow-xl space-y-5 text-center">
+            <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-600">
               <AlertTriangle className="w-7 h-7" />
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="text-lg font-bold text-white tracking-tight">
-                JanSetu AI Interface Restored
+              <h3 className="text-lg font-bold text-[#172033] tracking-tight">
+                JanSetu AI Interface Guard
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 A component error was caught safely. No municipal data or incident progress was lost.
               </p>
             </div>
 
             {this.state.error && (
-              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-left font-mono text-[11px] text-rose-300 max-h-32 overflow-y-auto">
+              <div className="p-3.5 rounded-lg bg-slate-50 border border-[#E2E8F0] text-left font-mono text-[11px] text-rose-800 max-h-32 overflow-y-auto">
                 {this.state.error.message || String(this.state.error)}
               </div>
             )}
@@ -60,14 +60,14 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex justify-center gap-3 pt-2">
               <button
                 onClick={this.handleReload}
-                className="px-4 py-2 text-xs font-semibold rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-950 flex items-center gap-2 shadow-lg shadow-teal-500/20"
+                className="px-4 py-2 text-xs font-semibold rounded-lg bg-teal-700 hover:bg-teal-800 text-white flex items-center gap-2 shadow-xs transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Reload Application
               </button>
               <button
                 onClick={this.handleReset}
-                className="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 flex items-center gap-2"
+                className="px-4 py-2 text-xs font-semibold rounded-lg border border-[#E2E8F0] bg-white text-slate-700 hover:bg-slate-50 flex items-center gap-2 shadow-xs transition-colors"
               >
                 <Home className="w-3.5 h-3.5" />
                 Return to Dashboard

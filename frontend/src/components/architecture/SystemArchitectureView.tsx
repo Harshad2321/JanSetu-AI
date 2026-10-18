@@ -176,12 +176,12 @@ export const SystemArchitectureView: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="border-b border-slate-800 pb-4">
-        <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-          <Layers className="w-6 h-6 text-teal-400" />
+      <div className="border-b border-[#E2E8F0] pb-5">
+        <h2 className="text-2xl font-bold text-[#172033] tracking-tight flex items-center gap-2">
+          <Layers className="w-6 h-6 text-teal-700" />
           System Architecture & Data Flow
         </h2>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-slate-500 mt-1">
           Inspectable system map representing the real code components, specialist agents, verification gates, and safety invariants.
         </p>
       </div>
@@ -190,72 +190,72 @@ export const SystemArchitectureView: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Interactive Architecture Flow Diagram */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/40 text-xs text-slate-400">
+          <div className="p-3.5 rounded-xl border border-[#E2E8F0] bg-white text-xs text-slate-600 shadow-xs">
             Click any component block below to inspect its genuine source code file, input/output contracts, and architectural invariants.
           </div>
 
           {/* Layer 1: Client & Gateway */}
           <div className="space-y-2">
-            <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider">1. Intake & REST API Layer</span>
+            <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold tracking-wider">1. Intake & REST API Layer</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={() => setSelectedComponentId('react-frontend')}
-                className={`p-3.5 rounded-xl border text-left transition-all ${
+                className={`p-4 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'react-frontend'
-                    ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-teal-400" />
-                  <span className="font-bold text-xs text-white">React + Vite Web App</span>
+                  <div className="w-2 h-2 rounded-full bg-teal-600" />
+                  <span className="font-bold text-xs text-[#172033]">React + Vite Web App</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">Multi-view operator console & citizen intake</p>
-                <span className="text-[10px] font-mono text-teal-400/80 mt-1 block">frontend/src/</span>
+                <p className="text-[11px] text-slate-500 mt-1">Multi-view operator console & citizen intake</p>
+                <span className="text-[10px] font-mono text-teal-800 font-medium mt-1.5 block">frontend/src/</span>
               </button>
 
               <button
                 onClick={() => setSelectedComponentId('fastapi-gateway')}
-                className={`p-3.5 rounded-xl border text-left transition-all ${
+                className={`p-4 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'fastapi-gateway'
-                    ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span className="font-bold text-xs text-white">FastAPI Application Gateway</span>
+                  <div className="w-2 h-2 rounded-full bg-emerald-600" />
+                  <span className="font-bold text-xs text-[#172033]">FastAPI Application Gateway</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">Pydantic validation, CORS & secure routing</p>
-                <span className="text-[10px] font-mono text-emerald-400/80 mt-1 block">backend/app/main.py</span>
+                <p className="text-[11px] text-slate-500 mt-1">Pydantic validation, CORS & secure routing</p>
+                <span className="text-[10px] font-mono text-emerald-800 font-medium mt-1.5 block">backend/app/main.py</span>
               </button>
             </div>
           </div>
 
           {/* Central Orchestrator */}
           <div className="space-y-2">
-            <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider">2. Central Workflow Orchestration</span>
+            <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold tracking-wider">2. Central Workflow Orchestration</span>
             <button
               onClick={() => setSelectedComponentId('langgraph-orchestrator')}
               className={`w-full p-4 rounded-xl border text-left transition-all ${
                 selectedComponentId === 'langgraph-orchestrator'
-                  ? 'border-teal-500 bg-teal-950/40 ring-2 ring-teal-500/50'
-                  : 'border-slate-700 bg-slate-900/80 hover:border-teal-600'
+                  ? 'border-teal-600 bg-teal-50/30 ring-2 ring-teal-600/40 shadow-sm'
+                  : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Cpu className="w-4 h-4 text-teal-400" />
-                  <span className="font-bold text-sm text-white">LangGraph State Orchestrator</span>
+                  <Cpu className="w-4 h-4 text-teal-700" />
+                  <span className="font-bold text-sm text-[#172033]">LangGraph State Orchestrator</span>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 font-semibold">
                   StateGraph Engine
                 </span>
               </div>
-              <p className="text-xs text-slate-300 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Dispatches per operational state, coordinates parallel triage, enforces transitions, and logs audit events with correlation_id.
               </p>
-              <span className="text-[11px] font-mono text-teal-400 mt-2 block">
+              <span className="text-[11px] font-mono text-teal-800 font-semibold mt-2 block">
                 backend/app/graph/orchestrator.py • backend/app/graph/state_machine.py
               </span>
             </button>
@@ -263,207 +263,207 @@ export const SystemArchitectureView: React.FC = () => {
 
           {/* Specialist Agents (3 Parallel Triage) */}
           <div className="space-y-2">
-            <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider">3. Parallel Intelligence & Triage Agents</span>
+            <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold tracking-wider">3. Parallel Intelligence & Triage Agents</span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 onClick={() => setSelectedComponentId('agent-1-intel')}
-                className={`p-3 rounded-xl border text-left transition-all ${
+                className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'agent-1-intel'
-                    ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
-                <div className="font-bold text-xs text-white">Agent 1: Incident Intel</div>
-                <p className="text-[11px] text-slate-400 mt-1">NLP + Vision Multimodal Fusion</p>
-                <span className="text-[10px] font-mono text-teal-400/80 mt-1 block truncate">incident_intel.py</span>
+                <div className="font-bold text-xs text-[#172033]">Agent 1: Incident Intel</div>
+                <p className="text-[11px] text-slate-500 mt-1">NLP + Vision Multimodal Fusion</p>
+                <span className="text-[10px] font-mono text-teal-800 font-medium mt-1.5 block truncate">incident_intel.py</span>
               </button>
 
               <button
                 onClick={() => setSelectedComponentId('agent-2-geo')}
-                className={`p-3 rounded-xl border text-left transition-all ${
+                className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'agent-2-geo'
-                    ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
-                <div className="font-bold text-xs text-white">Agent 2: GeoCivic</div>
-                <p className="text-[11px] text-slate-400 mt-1">Duplicates & DBSCAN Clusters</p>
-                <span className="text-[10px] font-mono text-teal-400/80 mt-1 block truncate">geocivic.py</span>
+                <div className="font-bold text-xs text-[#172033]">Agent 2: GeoCivic</div>
+                <p className="text-[11px] text-slate-500 mt-1">Duplicates & DBSCAN Clusters</p>
+                <span className="text-[10px] font-mono text-teal-800 font-medium mt-1.5 block truncate">geocivic.py</span>
               </button>
 
               <button
                 onClick={() => setSelectedComponentId('agent-3-priority')}
-                className={`p-3 rounded-xl border text-left transition-all ${
+                className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'agent-3-priority'
-                    ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
-                <div className="font-bold text-xs text-white">Agent 3: Risk & Priority</div>
-                <p className="text-[11px] text-slate-400 mt-1">Risk Factors & Corridor Gate</p>
-                <span className="text-[10px] font-mono text-teal-400/80 mt-1 block truncate">priority.py</span>
+                <div className="font-bold text-xs text-[#172033]">Agent 3: Risk & Priority</div>
+                <p className="text-[11px] text-slate-500 mt-1">Risk Factors & Corridor Gate</p>
+                <span className="text-[10px] font-mono text-teal-800 font-medium mt-1.5 block truncate">priority.py</span>
               </button>
             </div>
           </div>
 
           {/* Planning & Validation Gate */}
           <div className="space-y-2">
-            <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider">4. Response Planning & Safety Gate</span>
+            <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold tracking-wider">4. Response Planning & Safety Gate</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={() => setSelectedComponentId('agent-4-planning')}
                 className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'agent-4-planning'
-                    ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
-                <div className="font-bold text-xs text-white">Agent 4: Response Planning</div>
-                <p className="text-[11px] text-slate-400 mt-1">Permanent Resolution + Temporary Relief plans</p>
-                <span className="text-[10px] font-mono text-teal-400/80 mt-1 block">resolution.py</span>
+                <div className="font-bold text-xs text-[#172033]">Agent 4: Response Planning</div>
+                <p className="text-[11px] text-slate-500 mt-1">Permanent Resolution + Temporary Relief plans</p>
+                <span className="text-[10px] font-mono text-teal-800 font-medium mt-1 block">resolution.py</span>
               </button>
 
               <button
                 onClick={() => setSelectedComponentId('critic-validator')}
                 className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'critic-validator'
-                    ? 'border-amber-500 bg-amber-950/30 ring-1 ring-amber-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-amber-600 bg-amber-50/30 ring-1 ring-amber-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
                 <div className="flex items-center gap-1.5">
-                  <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="font-bold text-xs text-white">Separate Critic Validator</span>
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="font-bold text-xs text-[#172033]">Separate Critic Validator</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">Audits plan safety, resource constraints & budget</p>
-                <span className="text-[10px] font-mono text-amber-400/80 mt-1 block">critic.py</span>
+                <p className="text-[11px] text-slate-500 mt-1">Audits plan safety, resource constraints & budget</p>
+                <span className="text-[10px] font-mono text-amber-800 font-medium mt-1 block">critic.py</span>
               </button>
             </div>
           </div>
 
           {/* Simulation & Adaptive Recovery Loop */}
           <div className="space-y-2">
-            <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider">5. Execution Simulation & Bounded Recovery Loop</span>
+            <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold tracking-wider">5. Execution Simulation & Bounded Recovery Loop</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={() => setSelectedComponentId('simulator-engine')}
                 className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'simulator-engine'
-                    ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
-                <div className="font-bold text-xs text-white">Field Action Simulator</div>
-                <p className="text-[11px] text-slate-400 mt-1">Deterministic simulation (simulated=True)</p>
-                <span className="text-[10px] font-mono text-teal-400/80 mt-1 block">simulator.py</span>
+                <div className="font-bold text-xs text-[#172033]">Field Action Simulator</div>
+                <p className="text-[11px] text-slate-500 mt-1">Deterministic simulation (simulated=True)</p>
+                <span className="text-[10px] font-mono text-teal-800 font-medium mt-1 block">simulator.py</span>
               </button>
 
               <button
                 onClick={() => setSelectedComponentId('agent-5-recovery')}
                 className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'agent-5-recovery'
-                    ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
                 <div className="flex items-center gap-1.5">
-                  <RotateCcw className="w-3.5 h-3.5 text-teal-400" />
-                  <span className="font-bold text-xs text-white">Agent 5: Adaptive Recovery</span>
+                  <RotateCcw className="w-3.5 h-3.5 text-teal-700" />
+                  <span className="font-bold text-xs text-[#172033]">Agent 5: Adaptive Recovery</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">Selects feasible alternatives (max 2 retries)</p>
-                <span className="text-[10px] font-mono text-teal-400/80 mt-1 block">recovery.py</span>
+                <p className="text-[11px] text-slate-500 mt-1">Selects feasible alternatives (max 2 retries)</p>
+                <span className="text-[10px] font-mono text-teal-800 font-medium mt-1 block">recovery.py</span>
               </button>
             </div>
           </div>
 
           {/* Verification & Closure Gates */}
           <div className="space-y-2">
-            <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider">6. Independent Verification & Closure Authorization</span>
+            <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold tracking-wider">6. Independent Verification & Closure Authorization</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={() => setSelectedComponentId('agent-6-verification')}
                 className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'agent-6-verification'
-                    ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
-                <div className="font-bold text-xs text-white">Agent 6: Independent Verification</div>
-                <p className="text-[11px] text-slate-400 mt-1">Physical criterion audit (distinct from Critic)</p>
-                <span className="text-[10px] font-mono text-teal-400/80 mt-1 block">verification.py</span>
+                <div className="font-bold text-xs text-[#172033]">Agent 6: Independent Verification</div>
+                <p className="text-[11px] text-slate-500 mt-1">Physical criterion audit (distinct from Critic)</p>
+                <span className="text-[10px] font-mono text-teal-800 font-medium mt-1 block">verification.py</span>
               </button>
 
               <button
                 onClick={() => setSelectedComponentId('closure-gate')}
                 className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedComponentId === 'closure-gate'
-                    ? 'border-emerald-500 bg-emerald-950/30 ring-1 ring-emerald-500/50'
-                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    ? 'border-emerald-600 bg-emerald-50/30 ring-1 ring-emerald-600/40 shadow-xs'
+                    : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
                 }`}
               >
                 <div className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="font-bold text-xs text-white">Closure Gate (Invariant 1)</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="font-bold text-xs text-[#172033]">Closure Gate (Invariant 1)</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">Strict passing verification needed for VERIFIED_CLOSED</p>
-                <span className="text-[10px] font-mono text-emerald-400/80 mt-1 block">state_machine.py</span>
+                <p className="text-[11px] text-slate-500 mt-1">Strict passing verification needed for VERIFIED_CLOSED</p>
+                <span className="text-[10px] font-mono text-emerald-800 font-medium mt-1 block">state_machine.py</span>
               </button>
             </div>
           </div>
 
           {/* Persistence Layer */}
           <div className="space-y-2">
-            <span className="text-[10px] font-mono uppercase text-slate-500 tracking-wider">7. Digital Twin & Persistence</span>
+            <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold tracking-wider">7. Digital Twin & Persistence</span>
             <button
               onClick={() => setSelectedComponentId('sqlite-twin-persistence')}
-              className={`w-full p-3.5 rounded-xl border text-left transition-all ${
+              className={`w-full p-4 rounded-xl border text-left transition-all ${
                 selectedComponentId === 'sqlite-twin-persistence'
-                  ? 'border-teal-500 bg-teal-950/30 ring-1 ring-teal-500/50'
-                  : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                  ? 'border-teal-600 bg-teal-50/30 ring-1 ring-teal-600/40 shadow-xs'
+                  : 'border-[#E2E8F0] bg-white hover:border-slate-300 shadow-xs'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Database className="w-4 h-4 text-teal-400" />
-                <span className="font-bold text-xs text-white">SQLite Persistence & Civic Incident Twin</span>
+                <Database className="w-4 h-4 text-teal-700" />
+                <span className="font-bold text-xs text-[#172033]">SQLite Persistence & Civic Incident Twin</span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-[11px] text-slate-500 mt-1">
                 Version-preserving plans, execution logs, verification records, unconfirmed duplicates, and audit history.
               </p>
-              <span className="text-[10px] font-mono text-teal-400/80 mt-1 block">backend/app/db/ • backend/app/twin/</span>
+              <span className="text-[10px] font-mono text-teal-800 font-medium mt-1.5 block">backend/app/db/ • backend/app/twin/</span>
             </button>
           </div>
         </div>
 
         {/* Inspector Sidebar Panel */}
-        <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/70 backdrop-blur-md space-y-5 h-fit sticky top-24">
-          <div className="border-b border-slate-800 pb-3">
-            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/30">
+        <div className="p-5 rounded-2xl border border-[#E2E8F0] bg-white shadow-sm space-y-5 h-fit sticky top-24">
+          <div className="border-b border-[#E2E8F0] pb-3.5">
+            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 font-semibold">
               {active.category.toUpperCase()}
             </span>
-            <h3 className="text-lg font-bold text-white mt-2 tracking-tight">
+            <h3 className="text-lg font-bold text-[#172033] mt-2 tracking-tight">
               {active.title}
             </h3>
-            <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono text-teal-400">
-              <FileCode className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono text-teal-800 font-medium">
+              <FileCode className="w-3.5 h-3.5 text-teal-700" />
               <span>{active.file}</span>
             </div>
           </div>
 
           {/* Role & Description */}
           <div className="space-y-1.5 text-xs">
-            <span className="font-mono text-slate-400 uppercase text-[10px]">Architectural Role:</span>
-            <p className="text-slate-200 leading-relaxed">{active.role}</p>
-            <p className="text-slate-400 text-[11px] leading-relaxed pt-1">{active.description}</p>
+            <span className="font-mono text-slate-500 uppercase text-[10px] font-semibold">Architectural Role:</span>
+            <p className="text-slate-800 font-medium leading-relaxed">{active.role}</p>
+            <p className="text-slate-600 text-[11px] leading-relaxed pt-1">{active.description}</p>
           </div>
 
           {/* Inputs & Outputs */}
-          <div className="space-y-3 pt-2 border-t border-slate-800/80">
+          <div className="space-y-3 pt-2 border-t border-[#E2E8F0]">
             <div>
-              <span className="font-mono text-slate-400 uppercase text-[10px] block mb-1">Inputs:</span>
+              <span className="font-mono text-slate-500 uppercase text-[10px] font-semibold block mb-1">Inputs:</span>
               <ul className="space-y-1">
                 {active.inputs.map((inp, idx) => (
-                  <li key={idx} className="text-[11px] text-slate-300 flex items-start gap-1.5 font-mono">
-                    <span className="text-teal-400 shrink-0">→</span>
+                  <li key={idx} className="text-[11px] text-slate-700 flex items-start gap-1.5 font-mono">
+                    <span className="text-teal-700 font-bold shrink-0">→</span>
                     <span>{inp}</span>
                   </li>
                 ))}
@@ -471,11 +471,11 @@ export const SystemArchitectureView: React.FC = () => {
             </div>
 
             <div>
-              <span className="font-mono text-slate-400 uppercase text-[10px] block mb-1">Outputs / Emits:</span>
+              <span className="font-mono text-slate-500 uppercase text-[10px] font-semibold block mb-1">Outputs / Emits:</span>
               <ul className="space-y-1">
                 {active.outputs.map((out, idx) => (
-                  <li key={idx} className="text-[11px] text-slate-300 flex items-start gap-1.5 font-mono">
-                    <span className="text-emerald-400 shrink-0">←</span>
+                  <li key={idx} className="text-[11px] text-slate-700 flex items-start gap-1.5 font-mono">
+                    <span className="text-emerald-700 font-bold shrink-0">←</span>
                     <span>{out}</span>
                   </li>
                 ))}
@@ -484,14 +484,14 @@ export const SystemArchitectureView: React.FC = () => {
           </div>
 
           {/* Enforced Invariants */}
-          <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
-            <span className="font-mono text-slate-400 uppercase text-[10px] flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-teal-400" />
+          <div className="pt-2 border-t border-[#E2E8F0] space-y-1.5">
+            <span className="font-mono text-slate-500 uppercase text-[10px] font-semibold flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-teal-700" />
               System Invariants Enforced:
             </span>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {active.invariants.map((inv, idx) => (
-                <div key={idx} className="p-2 rounded-lg border border-teal-500/30 bg-teal-950/20 text-[11px] text-teal-200 font-mono">
+                <div key={idx} className="p-2.5 rounded-lg border border-teal-200 bg-teal-50/50 text-[11px] text-teal-900 font-mono font-medium">
                   {inv}
                 </div>
               ))}

@@ -49,27 +49,25 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isHealthy = health?.status === 'healthy';
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur supports-[backdrop-filter]:bg-slate-950/80">
+    <header className="sticky top-0 z-40 w-full border-b border-[#E2E8F0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Product Title */}
           <div
             onClick={() => onTabChange('operations')}
-            className="flex items-center gap-3 cursor-pointer shrink-0"
+            className="flex items-center gap-3 cursor-pointer shrink-0 group"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-teal-600 to-emerald-500 p-0.5 shadow-md shadow-teal-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[6px] flex items-center justify-center">
-                <span className="font-extrabold text-xs tracking-wider text-teal-400">JS</span>
-              </div>
+            <div className="w-8 h-8 rounded-lg bg-[#0F766E] flex items-center justify-center shadow-sm shadow-teal-900/10 transition-transform group-hover:scale-105">
+              <span className="font-extrabold text-xs tracking-wider text-white">JS</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-black tracking-tight text-base text-slate-100">JANSETU AI</span>
-                <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/30">
+                <span className="font-bold tracking-tight text-base text-[#172033]">JANSETU AI</span>
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-teal-50 text-[#0F766E] border border-teal-200/80 font-medium">
                   Command Center
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium tracking-tight">Adaptive Civic Incident Resolution</p>
+              <p className="text-[11px] text-[#64748B] font-medium tracking-tight">Adaptive Civic Incident Resolution</p>
             </div>
           </div>
 
@@ -81,13 +79,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     active
-                      ? 'bg-teal-500/15 text-teal-300 border border-teal-500/40 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900'
+                      ? 'bg-[#CCFBF1] text-[#0F766E] font-semibold border border-teal-200/70 shadow-2xs'
+                      : 'text-[#64748B] hover:text-[#172033] hover:bg-slate-100/80 border border-transparent'
                   }`}
                 >
-                  {item.icon}
+                  <span className={active ? 'text-[#0F766E]' : 'text-[#64748B]'}>{item.icon}</span>
                   <span>{item.label}</span>
                 </button>
               );
@@ -96,27 +94,28 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* System Health Status Indicator */}
           <div className="hidden sm:flex items-center gap-2">
-            <div
+            <button
               onClick={onRefreshHealth}
-              className="cursor-pointer flex items-center gap-2 px-2.5 py-1 rounded-md text-xs border border-slate-800 bg-slate-900/60 hover:bg-slate-900 transition-colors"
+              className="flex items-center gap-2 px-3 py-1 rounded-full text-xs border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-slate-100 hover:border-slate-300 transition-all shadow-2xs cursor-pointer"
               title="Click to check API health"
             >
               <span
                 className={`w-2 h-2 rounded-full ${
-                  isHealthy ? 'bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400' : 'bg-rose-500'
+                  isHealthy ? 'bg-[#16A34A] shadow-xs shadow-emerald-500/50' : 'bg-[#DC2626]'
                 }`}
               />
-              <span className="text-[11px] text-slate-400 font-mono">
+              <span className="text-[11px] text-[#172033] font-medium">
                 {isHealthy ? 'Backend Live' : 'Offline'}
               </span>
-            </div>
+            </button>
           </div>
 
           {/* Mobile Hamburger Button */}
           <div className="flex xl:hidden items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-900"
+              className="p-2 rounded-lg text-[#64748B] hover:text-[#172033] hover:bg-slate-100 border border-[#E2E8F0]"
+              aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -126,7 +125,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="xl:hidden border-t border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-1">
+        <div className="xl:hidden border-t border-[#E2E8F0] bg-white px-4 pt-2 pb-4 space-y-1 shadow-md">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -134,19 +133,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onTabChange(item.id);
                 setMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium text-left ${
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-left transition-colors ${
                 activeTab === item.id
-                  ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 font-bold'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                  ? 'bg-[#CCFBF1] text-[#0F766E] font-bold border border-teal-200/70'
+                  : 'text-[#64748B] hover:text-[#172033] hover:bg-slate-100'
               }`}
             >
-              {item.icon}
+              <span className={activeTab === item.id ? 'text-[#0F766E]' : 'text-[#64748B]'}>{item.icon}</span>
               {item.label}
             </button>
           ))}
-          <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono">
-            <span>Status: {isHealthy ? '● Backend Live' : '○ Offline'}</span>
-            <button onClick={onRefreshHealth} className="text-teal-400 hover:underline">
+          <div className="pt-2 border-t border-[#E2E8F0] flex justify-between items-center text-xs text-[#64748B]">
+            <span className="flex items-center gap-1.5 font-medium">
+              <span className={`w-2 h-2 rounded-full ${isHealthy ? 'bg-[#16A34A]' : 'bg-[#DC2626]'}`} />
+              Status: {isHealthy ? 'Backend Live' : 'Offline'}
+            </span>
+            <button onClick={onRefreshHealth} className="text-[#0F766E] hover:underline font-medium">
               Refresh Health
             </button>
           </div>

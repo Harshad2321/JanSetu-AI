@@ -56,7 +56,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500/30 selection:text-teal-200">
+    <div className="min-h-screen bg-[#F5F7FA] text-[#172033] flex flex-col font-sans selection:bg-teal-100 selection:text-teal-900">
       {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
@@ -67,16 +67,16 @@ export default function App() {
 
       {/* Backend Offline Warning Banner */}
       {backendOffline && (
-        <div className="bg-rose-950/80 border-b border-rose-800/80 px-4 py-2.5 text-rose-200 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2 max-w-5xl mx-auto w-full">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+        <div className="bg-rose-50 border-b border-rose-200 px-4 py-2.5 text-rose-800 text-xs flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2 max-w-7xl mx-auto w-full">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>
-              <strong>Cannot connect to JanSetu AI Backend at {api.getBaseUrl()}.</strong> Ensure the FastAPI server is running (<code className="font-mono bg-rose-900/60 px-1 py-0.5 rounded">uvicorn app.main:app --port 8000</code>).
+              <strong>Cannot connect to JanSetu AI Backend at {api.getBaseUrl()}.</strong> Ensure the FastAPI server is running (<code className="font-mono bg-rose-100 px-1 py-0.5 rounded text-rose-900">uvicorn app.main:app --port 8000</code>).
             </span>
             <button
               onClick={checkHealth}
               disabled={healthLoading}
-              className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 bg-rose-900 hover:bg-rose-800 text-white rounded text-[11px] font-medium transition-colors"
+              className="ml-auto inline-flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[11px] font-medium transition-colors shadow-xs"
             >
               <RefreshCw className={`w-3 h-3 ${healthLoading ? 'animate-spin' : ''}`} />
               Retry Connection
@@ -89,9 +89,9 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Suspense
           fallback={
-            <div className="flex flex-col items-center justify-center py-24 text-slate-400">
-              <Loader2 className="w-8 h-8 text-teal-400 animate-spin mb-3" />
-              <span className="text-xs uppercase tracking-widest font-semibold text-slate-400">
+            <div className="flex flex-col items-center justify-center py-24 text-slate-500">
+              <Loader2 className="w-8 h-8 text-teal-600 animate-spin mb-3" />
+              <span className="text-xs uppercase tracking-widest font-semibold text-slate-500">
                 Loading JanSetu Component...
               </span>
             </div>

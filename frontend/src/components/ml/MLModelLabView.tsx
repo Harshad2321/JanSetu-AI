@@ -73,13 +73,13 @@ export const MLModelLabView: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* View Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-5">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Cpu className="w-6 h-6 text-teal-400" />
+          <h2 className="text-2xl font-bold text-[#172033] tracking-tight flex items-center gap-2">
+            <Cpu className="w-6 h-6 text-teal-700" />
             Machine Learning Intelligence Lab
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Production NLP classifier evaluation metrics, per-class performance, confusion matrices, and live inference engine.
           </p>
         </div>
@@ -87,90 +87,90 @@ export const MLModelLabView: React.FC = () => {
         <button
           onClick={loadMetrics}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-[#E2E8F0] bg-white hover:bg-slate-50 text-slate-700 shadow-xs transition-colors disabled:opacity-50"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-teal-600' : 'text-slate-500'}`} />
           Refresh Model Status
         </button>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+        <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-xs flex items-center gap-2 shadow-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Model Overview & Vision Status Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+        <div className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono uppercase text-slate-400">NLP Classifier</span>
+            <span className="text-[11px] font-mono uppercase text-slate-500 font-semibold">NLP Classifier</span>
             <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-              metrics?.is_available ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+              metrics?.is_available ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
             }`}>
               {metrics?.is_available ? 'READY / ONLINE' : 'UNAVAILABLE'}
             </span>
           </div>
-          <div className="text-lg font-bold text-white tracking-tight">
+          <div className="text-lg font-bold text-[#172033] tracking-tight">
             {metrics?.model_name || 'TFIDF-LogisticRegression'}
           </div>
-          <p className="text-[11px] text-slate-400 font-mono">
+          <p className="text-[11px] text-slate-500 font-mono">
             Version: {metrics?.model_version || 'v1.0.0'} • Classes: {metrics?.classes?.join(', ') || 'pothole, waterlogging, garbage'}
           </p>
         </div>
 
-        <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+        <div className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono uppercase text-slate-400">Vision Provider</span>
+            <span className="text-[11px] font-mono uppercase text-slate-500 font-semibold">Vision Provider</span>
             <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-              metrics?.vision_provider?.is_configured ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              metrics?.vision_provider?.is_configured ? 'bg-teal-50 text-teal-800 border border-teal-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
             }`}>
               {metrics?.vision_provider?.is_configured ? 'CONFIGURED' : 'OPTIONAL / OFFLINE'}
             </span>
           </div>
-          <div className="text-lg font-bold text-white tracking-tight">
+          <div className="text-lg font-bold text-[#172033] tracking-tight">
             {metrics?.vision_provider?.name || 'Groq Vision LLM'}
           </div>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-500">
             {metrics?.vision_provider?.is_configured ? 'Live API key detected. Full multimodal vision inference enabled.' : 'Operating in fallback mode (safe degraded intake active).'}
           </p>
         </div>
 
-        <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+        <div className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono uppercase text-slate-400">Model Artifact</span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 bg-slate-800">
+            <span className="text-[11px] font-mono uppercase text-slate-500 font-semibold">Model Artifact</span>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono text-slate-600 bg-slate-100 border border-slate-200 font-medium">
               Joblib Binary
             </span>
           </div>
-          <div className="text-xs font-mono text-slate-300 truncate" title={metrics?.artifact_path}>
+          <div className="text-xs font-mono text-slate-700 truncate" title={metrics?.artifact_path}>
             {metrics?.artifact_path || 'artifacts/nlp_classifier.joblib'}
           </div>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-500">
             Calibrated probabilistic pipeline: TF-IDF Char/Word N-grams + Multinomial Logistic Regression.
           </p>
         </div>
       </div>
 
       {/* Model Performance Evaluation Dashboard */}
-      <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-sm space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+      <div className="p-5 rounded-2xl border border-[#E2E8F0] bg-white shadow-xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <BarChart2 className="w-4 h-4 text-teal-400" />
+            <h3 className="text-base font-bold text-[#172033] flex items-center gap-2">
+              <BarChart2 className="w-4 h-4 text-teal-700" />
               Empirical Evaluation Metrics
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Metrics calculated directly from evaluated test partitions in <code className="font-mono text-teal-300 text-[11px]">eval/nlp_metrics.json</code>.
+            <p className="text-xs text-slate-500 mt-0.5">
+              Metrics calculated directly from evaluated test partitions in <code className="font-mono text-teal-800 bg-slate-100 px-1 py-0.5 rounded text-[11px]">eval/nlp_metrics.json</code>.
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 p-1 rounded-lg border border-slate-800 bg-slate-950 text-xs">
+          <div className="flex items-center gap-1.5 p-1 rounded-lg border border-[#E2E8F0] bg-slate-50 text-xs">
             <button
               onClick={() => setActivePartition('test')}
               className={`px-3 py-1 rounded font-medium transition-colors ${
-                activePartition === 'test' ? 'bg-teal-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                activePartition === 'test' ? 'bg-teal-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Test Split (60 samples)
@@ -178,7 +178,7 @@ export const MLModelLabView: React.FC = () => {
             <button
               onClick={() => setActivePartition('challenge')}
               className={`px-3 py-1 rounded font-medium transition-colors ${
-                activePartition === 'challenge' ? 'bg-teal-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                activePartition === 'challenge' ? 'bg-teal-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Challenge Set (30 samples)
@@ -190,27 +190,27 @@ export const MLModelLabView: React.FC = () => {
           <div className="space-y-6">
             {/* Top Score Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="p-3.5 rounded-xl border border-slate-800/80 bg-slate-950/60">
-                <span className="text-[10px] font-mono text-slate-400 uppercase">Accuracy</span>
-                <div className="text-2xl font-black font-mono text-teal-400 mt-1">
+              <div className="p-4 rounded-xl border border-[#E2E8F0] bg-slate-50/70">
+                <span className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Accuracy</span>
+                <div className="text-2xl font-black font-mono text-teal-800 mt-1">
                   {(currentMetrics.accuracy * 100).toFixed(1)}%
                 </div>
               </div>
-              <div className="p-3.5 rounded-xl border border-slate-800/80 bg-slate-950/60">
-                <span className="text-[10px] font-mono text-slate-400 uppercase">Macro F1 Score</span>
-                <div className="text-2xl font-black font-mono text-emerald-400 mt-1">
+              <div className="p-4 rounded-xl border border-[#E2E8F0] bg-slate-50/70">
+                <span className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Macro F1 Score</span>
+                <div className="text-2xl font-black font-mono text-emerald-700 mt-1">
                   {(currentMetrics.macro_f1 * 100).toFixed(1)}%
                 </div>
               </div>
-              <div className="p-3.5 rounded-xl border border-slate-800/80 bg-slate-950/60">
-                <span className="text-[10px] font-mono text-slate-400 uppercase">Macro Precision</span>
-                <div className="text-2xl font-black font-mono text-sky-400 mt-1">
+              <div className="p-4 rounded-xl border border-[#E2E8F0] bg-slate-50/70">
+                <span className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Macro Precision</span>
+                <div className="text-2xl font-black font-mono text-blue-700 mt-1">
                   {(currentMetrics.macro_precision * 100).toFixed(1)}%
                 </div>
               </div>
-              <div className="p-3.5 rounded-xl border border-slate-800/80 bg-slate-950/60">
-                <span className="text-[10px] font-mono text-slate-400 uppercase">Macro Recall</span>
-                <div className="text-2xl font-black font-mono text-amber-400 mt-1">
+              <div className="p-4 rounded-xl border border-[#E2E8F0] bg-slate-50/70">
+                <span className="text-[10px] font-mono text-slate-500 uppercase font-semibold">Macro Recall</span>
+                <div className="text-2xl font-black font-mono text-amber-700 mt-1">
                   {(currentMetrics.macro_recall * 100).toFixed(1)}%
                 </div>
               </div>
@@ -220,12 +220,12 @@ export const MLModelLabView: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Per-Class Performance Table */}
               <div className="space-y-3">
-                <h4 className="text-xs font-mono font-bold uppercase text-slate-300">
+                <h4 className="text-xs font-mono font-bold uppercase text-slate-700">
                   Per-Class Classification Performance
                 </h4>
-                <div className="rounded-xl border border-slate-800 overflow-hidden bg-slate-950/70">
+                <div className="rounded-xl border border-[#E2E8F0] overflow-hidden bg-white">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-900/90 text-slate-400 border-b border-slate-800 text-[10px] uppercase font-mono">
+                    <thead className="bg-slate-50 text-slate-600 border-b border-[#E2E8F0] text-[10px] uppercase font-mono">
                       <tr>
                         <th className="py-2.5 px-3">Class</th>
                         <th className="py-2.5 px-3">Precision</th>
@@ -234,22 +234,22 @@ export const MLModelLabView: React.FC = () => {
                         <th className="py-2.5 px-3 text-right">Support</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60 font-mono">
+                    <tbody className="divide-y divide-[#E2E8F0] font-mono">
                       {Object.entries(currentMetrics.per_class).map(([className, score]: [string, any]) => (
-                        <tr key={className} className="hover:bg-slate-900/40">
-                          <td className="py-2.5 px-3 capitalize font-bold text-slate-200">
+                        <tr key={className} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="py-2.5 px-3 capitalize font-bold text-slate-800">
                             {className}
                           </td>
-                          <td className="py-2.5 px-3 text-teal-300">
+                          <td className="py-2.5 px-3 text-teal-800 font-semibold">
                             {(score.precision * 100).toFixed(1)}%
                           </td>
-                          <td className="py-2.5 px-3 text-sky-300">
+                          <td className="py-2.5 px-3 text-blue-800 font-semibold">
                             {(score.recall * 100).toFixed(1)}%
                           </td>
-                          <td className="py-2.5 px-3 text-emerald-300 font-bold">
+                          <td className="py-2.5 px-3 text-emerald-800 font-bold">
                             {(score.f1 * 100).toFixed(1)}%
                           </td>
-                          <td className="py-2.5 px-3 text-right text-slate-400">
+                          <td className="py-2.5 px-3 text-right text-slate-500 font-medium">
                             {score.support}
                           </td>
                         </tr>
@@ -261,25 +261,25 @@ export const MLModelLabView: React.FC = () => {
 
               {/* Confusion Matrix Visualization */}
               <div className="space-y-3">
-                <h4 className="text-xs font-mono font-bold uppercase text-slate-300">
+                <h4 className="text-xs font-mono font-bold uppercase text-slate-700">
                   Confusion Matrix (Predicted vs Actual)
                 </h4>
-                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/70 flex flex-col items-center justify-center">
+                <div className="p-4 rounded-xl border border-[#E2E8F0] bg-slate-50/50 flex flex-col items-center justify-center">
                   <div className="w-full max-w-sm">
-                    <div className="text-[10px] text-center font-mono text-slate-500 uppercase tracking-wider mb-2">
+                    <div className="text-[10px] text-center font-mono text-slate-500 uppercase tracking-wider mb-2 font-medium">
                       Predicted Class →
                     </div>
                     <div className="grid grid-cols-4 gap-1.5 text-center text-xs font-mono">
-                      <div className="text-[10px] text-slate-500 flex items-center justify-end pr-2">Actual ↓</div>
+                      <div className="text-[10px] text-slate-400 flex items-center justify-end pr-2 font-medium">Actual ↓</div>
                       {currentMetrics.confusion_matrix.classes.map((c) => (
-                        <div key={c} className="text-[10px] font-bold text-slate-400 capitalize truncate p-1">
+                        <div key={c} className="text-[10px] font-bold text-slate-600 capitalize truncate p-1">
                           {c.slice(0, 5)}
                         </div>
                       ))}
 
                       {currentMetrics.confusion_matrix.matrix.map((row, rIdx) => (
                         <React.Fragment key={rIdx}>
-                          <div className="text-[10px] font-bold text-slate-400 capitalize flex items-center justify-end pr-2 truncate">
+                          <div className="text-[10px] font-bold text-slate-600 capitalize flex items-center justify-end pr-2 truncate">
                             {currentMetrics.confusion_matrix.classes[rIdx].slice(0, 5)}
                           </div>
                           {row.map((val, cIdx) => {
@@ -287,12 +287,12 @@ export const MLModelLabView: React.FC = () => {
                             return (
                               <div
                                 key={cIdx}
-                                className={`p-3 rounded-lg border font-bold ${
+                                className={`p-3 rounded-lg border font-bold transition-all ${
                                   isDiagonal
-                                    ? 'bg-teal-500/20 border-teal-500/40 text-teal-200'
+                                    ? 'bg-teal-50 border-teal-300 text-teal-800 shadow-xs'
                                     : val > 0
-                                    ? 'bg-rose-500/20 border-rose-500/30 text-rose-300'
-                                    : 'bg-slate-900 border-slate-800 text-slate-600'
+                                    ? 'bg-rose-50 border-rose-300 text-rose-800'
+                                    : 'bg-white border-[#E2E8F0] text-slate-400 font-normal'
                                 }`}
                               >
                                 {val}
@@ -309,31 +309,31 @@ export const MLModelLabView: React.FC = () => {
           </div>
         ) : (
           <div className="p-8 text-center text-slate-500 text-xs">
-            Evaluation metrics not found. Run <code className="text-teal-400 font-mono">python -m app.ml.nlp_classifier --train</code> to generate evaluation report.
+            Evaluation metrics not found. Run <code className="text-teal-700 font-mono font-semibold">python -m app.ml.nlp_classifier --train</code> to generate evaluation report.
           </div>
         )}
       </div>
 
       {/* Live Inference Prediction Playground */}
-      <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm space-y-4">
+      <div className="p-5 rounded-2xl border border-[#E2E8F0] bg-white shadow-xs space-y-4">
         <div>
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-teal-400" />
+          <h3 className="text-base font-bold text-[#172033] flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-teal-700" />
             Live NLP Inference Playground
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Submit sample civic complaint texts directly to the active model for live probabilistic categorization.
           </p>
         </div>
 
         {/* Quick Sample Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-mono text-slate-400">Sample Inputs:</span>
+          <span className="text-[11px] font-mono text-slate-500 font-semibold">Sample Inputs:</span>
           {sampleComplaints.map((item, idx) => (
             <button
               key={idx}
               onClick={() => handlePredict(item.text)}
-              className="px-2.5 py-1 text-[11px] rounded-lg border border-slate-800 bg-slate-950 hover:bg-slate-900 text-slate-300 hover:text-white transition-colors"
+              className="px-2.5 py-1 text-[11px] rounded-lg border border-[#E2E8F0] bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium transition-colors"
             >
               {item.label}
             </button>
@@ -347,17 +347,17 @@ export const MLModelLabView: React.FC = () => {
             onChange={(e) => setInputText(e.target.value)}
             rows={3}
             placeholder="Type or paste a complaint description in English or Hinglish..."
-            className="w-full p-3 rounded-xl border border-slate-700 bg-slate-950 text-slate-100 placeholder-slate-500 text-xs font-sans focus:outline-none focus:border-teal-500"
+            className="w-full p-3 rounded-xl border border-[#E2E8F0] bg-slate-50/50 text-[#172033] placeholder-slate-400 text-xs font-sans focus:outline-none focus:bg-white focus:border-teal-600 focus:ring-1 focus:ring-teal-600 transition-all"
           />
 
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-500 font-mono">
+            <span className="text-[11px] text-slate-400 font-mono">
               {inputText.length} / 2000 characters
             </span>
             <button
               onClick={() => handlePredict()}
               disabled={predicting || !inputText.trim()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs bg-teal-600 hover:bg-teal-500 text-white shadow-md shadow-teal-500/20 transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs bg-teal-700 hover:bg-teal-800 text-white shadow-xs transition-all disabled:opacity-50"
             >
               <Play className={`w-3.5 h-3.5 fill-current ${predicting ? 'animate-spin' : ''}`} />
               {predicting ? 'Classifying...' : 'Predict Category'}
@@ -366,41 +366,41 @@ export const MLModelLabView: React.FC = () => {
         </div>
 
         {predictError && (
-          <div className="p-3 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-rose-800 text-xs flex items-center gap-2 shadow-xs">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{predictError}</span>
           </div>
         )}
 
         {/* Prediction Results Card */}
         {predictResult && (
-          <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-950/20 space-y-3 animate-in fade-in duration-200">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-teal-500/20 pb-2">
+          <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/30 space-y-3 animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-teal-200/60 pb-2">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
-                <span className="text-xs font-mono text-slate-400">Predicted Classification:</span>
-                <span className="text-sm font-bold uppercase text-teal-300 font-mono">
+                <CheckCircle2 className="w-4 h-4 text-teal-700 shrink-0" />
+                <span className="text-xs font-mono text-slate-500 font-medium">Predicted Classification:</span>
+                <span className="text-sm font-bold uppercase text-teal-900 font-mono">
                   {predictResult.predicted_label || 'UNCERTAIN'}
                 </span>
               </div>
-              <div className="text-xs font-mono text-slate-300">
-                Confidence: <strong className="text-teal-400">{((predictResult.confidence || 0) * 100).toFixed(1)}%</strong>
+              <div className="text-xs font-mono text-slate-600">
+                Confidence: <strong className="text-teal-800 font-bold">{((predictResult.confidence || 0) * 100).toFixed(1)}%</strong>
               </div>
             </div>
 
             {/* Score Breakdown Bars */}
             <div className="space-y-2">
-              <span className="text-[11px] font-mono uppercase text-slate-400">Class Probabilities:</span>
+              <span className="text-[11px] font-mono uppercase text-slate-500 font-semibold">Class Probabilities:</span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {Object.entries(predictResult.scores).map(([cls, prob]) => (
-                  <div key={cls} className="p-2.5 rounded-lg border border-slate-800 bg-slate-950/80 space-y-1">
+                  <div key={cls} className="p-3 rounded-lg border border-[#E2E8F0] bg-white space-y-1.5 shadow-xs">
                     <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="capitalize text-slate-300">{cls}</span>
-                      <span className="font-bold text-teal-300">{(prob * 100).toFixed(1)}%</span>
+                      <span className="capitalize text-slate-700 font-medium">{cls}</span>
+                      <span className="font-bold text-teal-800">{(prob * 100).toFixed(1)}%</span>
                     </div>
-                    <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                    <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
                       <div
-                        className="h-full bg-teal-400 rounded-full transition-all duration-500"
+                        className="h-full bg-teal-600 rounded-full transition-all duration-500"
                         style={{ width: `${prob * 100}%` }}
                       />
                     </div>

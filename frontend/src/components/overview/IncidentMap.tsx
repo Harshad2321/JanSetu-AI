@@ -10,10 +10,10 @@ interface IncidentMapProps {
 }
 
 function createMarkerIcon(priority?: string) {
-  let color = '#2dd4bf'; // teal (medium/default)
-  if (priority === 'Critical') color = '#ef4444'; // red
-  else if (priority === 'High') color = '#f59e0b'; // amber
-  else if (priority === 'Low') color = '#94a3b8'; // slate
+  let color = '#0F766E'; // teal (medium/default)
+  if (priority === 'Critical') color = '#DC2626'; // red
+  else if (priority === 'High') color = '#EA580C'; // orange/amber
+  else if (priority === 'Low') color = '#16A34A'; // green
 
   const html = `
     <div style="
@@ -21,12 +21,12 @@ function createMarkerIcon(priority?: string) {
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      border: 2.5px solid #0f172a;
-      box-shadow: 0 0 10px ${color}88;
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #0f172a;
+      color: #FFFFFF;
       font-weight: bold;
       font-size: 10px;
     ">
@@ -58,7 +58,7 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({ incidents, onSelectInc
       : [28.6139, 77.209];
 
   return (
-    <div className="w-full h-80 rounded-xl overflow-hidden border border-slate-800 shadow-inner relative z-0">
+    <div className="w-full h-80 rounded-xl overflow-hidden border border-[#E2E8F0] shadow-sm relative z-0 bg-white">
       <MapContainer
         center={defaultCenter}
         zoom={geoIncidents.length > 0 ? 13 : 11}
@@ -77,17 +77,17 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({ incidents, onSelectInc
             icon={createMarkerIcon(inc.priority?.priority_band)}
           >
             <Popup className="incident-map-popup">
-              <div className="p-1 space-y-2 text-slate-900 min-w-[200px]">
-                <div className="flex justify-between items-center border-b pb-1">
-                  <span className="font-mono font-bold text-xs">{inc.incident_id}</span>
-                  <span className="text-[10px] uppercase font-semibold text-slate-500">{inc.category}</span>
+              <div className="p-1 space-y-2 text-[#172033] min-w-[210px]">
+                <div className="flex justify-between items-center border-b border-[#E2E8F0] pb-1.5">
+                  <span className="font-mono font-bold text-xs text-[#0F766E]">{inc.incident_id}</span>
+                  <span className="text-[10px] uppercase font-semibold text-[#64748B]">{inc.category.replace('_', ' ')}</span>
                 </div>
-                <p className="text-xs text-slate-700 line-clamp-2">{inc.complaint}</p>
+                <p className="text-xs text-[#172033] line-clamp-2 leading-relaxed">{inc.complaint}</p>
                 <div className="flex justify-between items-center pt-1">
                   <OperationalStatusBadge status={inc.operational_status} size="sm" />
                   <button
                     onClick={() => onSelectIncident(inc.incident_id)}
-                    className="text-[11px] font-semibold text-teal-600 hover:text-teal-800 underline"
+                    className="text-[11px] font-semibold text-[#0F766E] hover:text-[#115E59] hover:underline cursor-pointer"
                   >
                     View Case →
                   </button>
@@ -99,8 +99,8 @@ export const IncidentMap: React.FC<IncidentMapProps> = ({ incidents, onSelectInc
       </MapContainer>
 
       {geoIncidents.length === 0 && (
-        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-          <p className="text-xs text-slate-400">No geo-tagged incidents with confirmed coordinates recorded yet.</p>
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center pointer-events-none">
+          <p className="text-xs text-[#64748B] font-medium">No geo-tagged incidents with confirmed coordinates recorded yet.</p>
         </div>
       )}
     </div>
