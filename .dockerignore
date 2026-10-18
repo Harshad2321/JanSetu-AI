@@ -17,3 +17,13 @@ Thumbs.db
 *.temp
 scratch/
 skills-lock.json
+.env
+.env.*
+*.pem
+*.key
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/uploads/*
+!data/uploads/.gitkeep
+

@@ -458,13 +458,7 @@ def simulate_scenario_endpoint(
     scenario: Optional[SupportedScenario] = Query(None),
     db: Session = Depends(get_db),
 ) -> WorkflowRunResponse:
-    """Trigger a documented failure or success simulation scenario for demonstration."""
-    if settings.ENVIRONMENT.lower() == "production" and not settings.DEMO_MODE:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Synthetic simulations are disabled in production environment.",
-        )
-
+    """Trigger a documented failure or success simulation scenario for academic PoC demonstration."""
     incident = get_incident_by_id(db, incident_id)
     if not incident:
         raise HTTPException(

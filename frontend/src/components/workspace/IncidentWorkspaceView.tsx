@@ -87,7 +87,7 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
           setIncident(data);
           if (twinData) setTwin(twinData);
         })
-        .catch(() => {});
+        .catch(() => { });
     }, 3500);
     return () => clearInterval(interval);
   }, [incidentId]);
@@ -439,13 +439,12 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 font-mono">Gate Verdict:</span>
                     <span
-                      className={`font-bold px-2 py-0.5 rounded ${
-                        incident.validation.status === 'APPROVE'
+                      className={`font-bold px-2 py-0.5 rounded ${incident.validation.status === 'APPROVE'
                           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                           : incident.validation.status === 'REJECT'
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                          : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                      }`}
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                            : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                        }`}
                     >
                       {incident.validation.status}
                     </span>
@@ -558,11 +557,10 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-mono">Closure Authorization:</span>
                   <span
-                    className={`font-bold px-2 py-0.5 rounded ${
-                      incident.closure_evidence.is_ready_for_closure
+                    className={`font-bold px-2 py-0.5 rounded ${incident.closure_evidence.is_ready_for_closure
                         ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                         : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                    }`}
+                      }`}
                   >
                     {incident.closure_evidence.is_ready_for_closure ? 'READY FOR CLOSURE' : 'CLOSURE BARRED'}
                   </span>
@@ -674,9 +672,8 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2 font-mono">
                             <span className="font-bold text-slate-200">{att.attempt_id}</span>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
-                              att.outcome === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
-                            }`}>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${att.outcome === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+                              }`}>
                               {att.outcome}
                             </span>
                           </div>
@@ -710,9 +707,8 @@ export const IncidentWorkspaceView: React.FC<IncidentWorkspaceViewProps> = ({
                       <div key={idx} className="p-3 rounded-lg border border-slate-800 bg-slate-950/70 text-xs space-y-1.5">
                         <div className="flex items-center justify-between font-mono">
                           <span className="font-bold text-teal-300">{v.verification_id}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                            v.passed ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                          }`}>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${v.passed ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                            }`}>
                             {v.passed ? 'VERIFICATION PASSED' : 'VERIFICATION FAILED'}
                           </span>
                         </div>

@@ -1,6 +1,6 @@
 # JanSetu AI — Verification & Validation Results Table
 
-**Generated Date:** 2026-10-16 15:56:52 UTC  
+**Generated Date:** 2026-10-18 08:57:32 UTC  
 **Validation Suite:** `eval/run_validation.py`  
 **Overall Invariants Status:** 11/11 PASSED (100% compliant)  
 

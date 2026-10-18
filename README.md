@@ -14,6 +14,10 @@ Municipal command centers in developing urban centers struggle with fragmented c
 
 **JanSetu AI** addresses these challenges through a modular, autonomous multi-agent architecture built on **FastAPI**, **LangGraph**, and **React 19 / TypeScript**. The platform models municipal operations through a persistent **Civic Incident Twin**, coordinates **six specialist agents** and an independent **Critic**, executes adaptive recovery workflows under field constraints, and enforces an unbypassable, deterministic **Closure Gate** requiring independent structural verification before any incident can be closed.
 
+> [!TIP]
+> 📖 **Deep Technical & Operational Documentation:**  
+> For the complete end-to-end technical manual detailing every agent contract, mathematical formula, state machine transition matrix, ML fusion truth table, database schema, and live demo script, see **[JANSETU_SYSTEM_WORKFLOW_AND_TECHNICAL_MANUAL.md](JANSETU_SYSTEM_WORKFLOW_AND_TECHNICAL_MANUAL.md)**.
+
 > [!IMPORTANT]
 > **Academic Scope & Simulation Boundary:**  
 > JanSetu AI is an educational, prototype-grade multi-agent proof of concept. All work orders, contractor dispatches, resource substitutions, and execution attempts are executed within a software simulation environment (`simulated=True`). No physical municipal crews are dispatched, and the terminal state `VERIFIED_CLOSED` denotes a validated simulation outcome rather than a physical road repair. For full details on academic boundaries, see [docs/limitations.md](docs/limitations.md).
